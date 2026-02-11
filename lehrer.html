@@ -33,7 +33,7 @@
         <a class="ghost" href="./index.html">← Startseite</a>
       </div>
       <p class="muted" style="margin:10px 0 0;">
-        Lehrer-Login. Anzeige: Bestwert (richtig), Ø Accuracy (letzte 5), Gesamt beantwortet (letzte 5) + Reset.
+        Lehrer-Login. Schüler verwalten (Codes), Ergebnisse ansehen, Statistik resetten, Schüler löschen.
       </p>
     </div>
 
@@ -76,7 +76,7 @@
         <select id="classSelect"></select>
         <input id="studentName" placeholder="Schüler-Name/Kürzel (z.B. LK05)" />
         <button id="createStudentBtn">Schüler + Code erstellen</button>
-        <button class="ghost" id="createBatchBtn">Batch</button>
+        <button class="ghost" id="createBatchBtn" title="Erstellt mehrere Schüler auf einmal">Batch</button>
       </div>
 
       <div id="batchBox" style="display:none; margin-top:10px;">
@@ -103,7 +103,6 @@
 
     const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
-
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = (id) => document.getElementById(id);
@@ -197,16 +196,43 @@
 
       $("studentList").innerHTML = `
         <table>
-          <thead><tr><th>Name</th><th>Code</th><th>Status</th></tr></thead>
+          <thead><tr><th>Name</th><th>Code</th><th>Status</th><th>Aktion</th></tr></thead>
           <tbody>${students.map(s => {
             const claimed = s.claimed_at ? "✅ benutzt" : "🆕 neu";
             return `<tr>
               <td><strong>${escapeHtml(s.display_name)}</strong></td>
               <td><code>${escapeHtml(s.login_code)}</code></td>
               <td class="muted">${claimed}</td>
+              <td>
+                <button class="ghost danger" data-del-student="${s.id}" data-del-name="${escapeHtml(s.display_name)}">
+                  Schüler löschen
+                </button>
+              </td>
             </tr>`;
           }).join("")}</tbody>
-        </table>`;
+        </table>
+      `;
+
+      // Delete handler
+      document.querySelectorAll("[data-del-student]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const sid = btn.getAttribute("data-del-student");
+          const name = btn.getAttribute("data-del-name") || "Schüler";
+          if (!sid) return;
+
+          const ok = confirm(`Wirklich "${name}" löschen?\n- Schüler wird aus der Klasse entfernt\n- alle Ergebnisse werden gelöscht\n(Das kann nicht rückgängig gemacht werden)`);
+          if (!ok) return;
+
+          const { error } = await supabase.from("students").delete().eq("id", sid);
+          if (error) {
+            alert("Fehler beim Löschen: " + error.message);
+            return;
+          }
+          alert("✅ Schüler gelöscht.");
+          await loadStudentsForSelectedClass();
+          await loadResultsForSelectedClass();
+        });
+      });
     }
 
     async function loadResultsForSelectedClass() {
@@ -241,16 +267,9 @@
 
         const last5 = list.slice(0,5);
         const avgAcc5 = last5.length ? (last5.reduce((sum,x)=>sum+Number(x.accuracy ?? 0),0)/last5.length) : 0;
-        const totalAnswered5 = last5.reduce((sum,x)=>sum + Number(x.total_count ?? (x.correct_count + (x.wrong_count ?? 0))), 0);
+        const answered5 = last5.reduce((sum,x)=>sum + Number(x.total_count ?? (x.correct_count + (x.wrong_count ?? 0))), 0);
 
-        return {
-          id: s.id,
-          name: s.display_name,
-          attempts: list.length,
-          bestCorrect,
-          avgAcc5,
-          totalAnswered5
-        };
+        return { id: s.id, name: s.display_name, bestCorrect, avgAcc5, answered5, n: list.length };
       }).sort((a,b)=> b.bestCorrect - a.bestCorrect || b.avgAcc5 - a.avgAcc5 || a.name.localeCompare(b.name));
 
       $("resultsBox").innerHTML = `
@@ -276,30 +295,28 @@
                 <td><strong>${escapeHtml(r.name)}</strong></td>
                 <td>${r.bestCorrect}</td>
                 <td class="muted">${Math.round(r.avgAcc5*100)}%</td>
-                <td class="muted">${r.totalAnswered5}</td>
-                <td class="muted">${r.attempts}</td>
-                <td><button class="ghost danger" data-reset-student="${r.id}">Schüler zurücksetzen</button></td>
+                <td class="muted">${r.answered5}</td>
+                <td class="muted">${r.n}</td>
+                <td><button class="ghost danger" data-reset-student="${r.id}">Reset</button></td>
               </tr>
             `).join("")}
           </tbody>
         </table>
       `;
 
-      // Reset: ganze Klasse
-      const resetClassBtn = document.getElementById("resetClassBtn");
-      resetClassBtn?.addEventListener("click", async () => {
+      // Reset Klasse
+      document.getElementById("resetClassBtn")?.addEventListener("click", async () => {
         const ok = confirm("Wirklich ALLE Statistiken dieser Klasse löschen? (Kann nicht rückgängig gemacht werden)");
         if (!ok) return;
 
         const ids = students.map(s => s.id);
         const { error } = await supabase.from("attempts").delete().in("student_id", ids);
-
-        if (error) return alert("Fehler beim Zurücksetzen: " + error.message);
+        if (error) return alert("Fehler: " + error.message);
         alert("✅ Klassen-Statistik zurückgesetzt.");
         await loadResultsForSelectedClass();
       });
 
-      // Reset: einzelner Schüler
+      // Reset Schüler
       document.querySelectorAll("[data-reset-student]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const sid = btn.getAttribute("data-reset-student");
@@ -309,8 +326,7 @@
           if (!ok) return;
 
           const { error } = await supabase.from("attempts").delete().eq("student_id", sid);
-
-          if (error) return alert("Fehler beim Zurücksetzen: " + error.message);
+          if (error) return alert("Fehler: " + error.message);
           alert("✅ Schüler-Statistik zurückgesetzt.");
           await loadResultsForSelectedClass();
         });
