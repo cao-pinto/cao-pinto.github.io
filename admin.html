@@ -70,12 +70,12 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // TODO: HIER EINTRAGEN (Project Settings → API)
-    const SUPABASE_URL = "PASTE_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY";
+    // Fix eingetragen
+    const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
 
-    // TODO: Function URL (Edge Functions → admin_create_teacher)
-    const FN_ADMIN_CREATE_TEACHER = "PASTE_FUNCTION_URL/admin_create_teacher";
+    // Fix eingetragen
+    const FN_ADMIN_CREATE_TEACHER = "https://dnlencbwbbriijmzijci.functions.supabase.co/admin_create_teacher";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -88,6 +88,12 @@
 
     function msg(el, ok, text) {
       el.innerHTML = `<div class="${ok ? "ok" : "bad"}">${text}</div>`;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[c]));
     }
 
     async function ensureSessionUI() {
@@ -110,7 +116,7 @@
         .order("created_at", { ascending: false });
 
       if (error) {
-        teacherList.innerHTML = `<div class="bad">Fehler: ${error.message}</div>`;
+        teacherList.innerHTML = `<div class="bad">Fehler: ${escapeHtml(error.message)}</div>`;
         return;
       }
 
@@ -137,19 +143,13 @@
       `;
     }
 
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, c => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[c]));
-    }
-
     $("loginBtn").addEventListener("click", async () => {
       loginMsg.textContent = "";
       const email = $("email").value.trim();
       const password = $("pass").value.trim();
 
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) msg(loginMsg, false, `Login fehlgeschlagen: ${error.message}`);
+      if (error) msg(loginMsg, false, `Login fehlgeschlagen: ${escapeHtml(error.message)}`);
       else msg(loginMsg, true, "✅ Eingeloggt.");
       await ensureSessionUI();
     });
@@ -191,17 +191,17 @@
 
         const json = await res.json();
         if (!res.ok) {
-          msg(createMsg, false, `Fehler: ${json.error || "unbekannt"} ${json.details ? " – " + json.details : ""}`);
+          msg(createMsg, false, `Fehler: ${escapeHtml(json.error || "unbekannt")}${json.details ? " – " + escapeHtml(json.details) : ""}`);
           return;
         }
 
-        msg(createMsg, true, `✅ Lehrer erstellt: ${escapeHtml(json.teacher.display_name)}`);
+        msg(createMsg, true, `✅ Lehrer erstellt: <strong>${escapeHtml(json.teacher.display_name)}</strong>`);
         $("tName").value = "";
         $("tEmail").value = "";
         $("tPass").value = "";
         await loadTeachers();
       } catch (e) {
-        msg(createMsg, false, `Netzwerkfehler: ${String(e)}`);
+        msg(createMsg, false, `Netzwerkfehler: ${escapeHtml(String(e))}`);
       }
     });
 
