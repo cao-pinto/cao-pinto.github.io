@@ -280,13 +280,15 @@
 
       try {
         const res = await fetch(FN_CLAIM_CODE, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ code })
-        });
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "apikey": SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({ code })
+      });
+
 
         const json = await res.json();
         if (!res.ok) {
