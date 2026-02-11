@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spiel 1 – Binär-Quest (Zufällig + Timer)</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #f6f7fb; color: #111; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+    header { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 1.35rem; }
+    h2 { margin: 0 0 10px; font-size: 1.15rem; }
+    .card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+    .pill { padding: 6px 10px; border-radius: 999px; background: #eef2ff; font-weight: 700; }
+    .question { font-size: 1.2rem; margin: 8px 0 12px; }
+    .hint { margin: 0 0 14px; color: #333; opacity: .85; }
+    input[type="text"], input[type="password"], textarea{
+      font-size: 1.0rem; padding: 10px 12px; border-radius: 10px; border: 1px solid #ccd2e1;
+    }
+    input[type="text"], input[type="password"]{ min-width: 240px; }
+    textarea{ width: 100%; min-height: 260px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    button{
+      padding: 10px 14px; border-radius: 10px; border: 0;
+      background: #1f6feb; color: #fff; font-weight: 800; cursor: pointer;
+    }
+    button.secondary{ background: #111827; }
+    button.ghost{ background: #e5e7eb; color: #111; }
+    button:disabled{ opacity: .55; cursor: not-allowed; }
+    .feedback{ margin-top: 12px; padding: 12px; border-radius: 10px; }
+    .ok{ background: #ecfdf5; border: 1px solid #10b98144; }
+    .bad{ background: #fef2f2; border: 1px solid #ef444444; }
+    .small{ font-size: .92rem; opacity: .88; }
+    .muted{ opacity: .75; }
+    code.kbd { background: #111827; color: #fff; padding: 2px 6px; border-radius: 6px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 900px){ .grid { grid-template-columns: 1.25fr .75fr; } }
+    .tag { display:inline-block; font-size:.85rem; padding: 2px 8px; border-radius:999px; background:#f3f4f6; }
+    .danger { background:#fee2e2; color:#111; padding:6px 10px; border-radius:10px; }
+    .success { background:#dcfce7; color:#111; padding:6px 10px; border-radius:10px; }
+    ul { margin: 10px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Binär-Quest 🧠⚡ (Zufällig + Timer)</h1>
+      <div class="row" id="statusBar" style="display:none;">
+        <div class="pill">Name: <span id="playerNameTop">—</span></div>
+        <div class="pill">Frage: <span id="qIndex">1</span>/<span id="qTotal">10</span></div>
+        <div class="pill">Punkte: <span id="score">0</span></div>
+        <div class="pill">Zeit: <span id="timeLeft">—</span>s</div>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:14px;">
+      <!-- LEFT -->
+      <div>
+        <div class="card" id="introCard">
+          <div class="row" style="justify-content:space-between;">
+            <h2 style="margin:0;">Kurze Erklärung: Binärsystem</h2>
+            <div class="row">
+              <a href="./index.html" class="ghost"
+                 style="text-decoration:none; padding:10px 14px; border-radius:10px; background:#e5e7eb; color:#111; font-weight:800;">
+                ← Startseite
+              </a>
+              <button id="openTeacherBtn" class="ghost">Lehrermodus</button>
+            </div>
+          </div>
+
+          <p>
+            Im <strong>Binärsystem</strong> gibt es nur <code class="kbd">0</code> und <code class="kbd">1</code>.
+            Jede Stelle hat einen <strong>Stellenwert</strong> (von rechts): 1, 2, 4, 8, 16, 32, 64, …
+          </p>
+
+          <div class="card" style="box-shadow:none; border:1px solid #e5e7eb; margin-top:12px;">
+            <strong>Beispiele (nicht im Quiz):</strong>
+            <ul>
+              <li><code class="kbd">10</code> (dezimal) = <code class="kbd">1010</code> (binär)</li>
+              <li><code class="kbd">10000</code> (binär) = <code class="kbd">16</code> (dezimal)</li>
+            </ul>
+            <p class="small muted" style="margin:10px 0 0;">
+              Führende Nullen ändern den Wert nicht: <code class="kbd">101</code> = <code class="kbd">00000101</code>.
+            </p>
+          </div>
+
+          <div class="row" style="margin-top:14px;">
+            <label class="small"><strong>Name:</strong></label>
+            <input id="nameInput" type="text" maxlength="20" placeholder="z.B. Alex" />
+            <button id="startBtn">Spiel starten</button>
+          </div>
+
+          <p class="small muted" style="margin-top:10px;">
+            Punkte-Regel: Pro Frage gibt’s nur dann einen Punkt, wenn du sie <strong>beim 1. Versuch</strong> richtig löst.
+            Nach einem Fehler (oder wenn die Zeit abläuft) darfst du weiter probieren, bekommst aber für diese Frage dann <strong>keinen Punkt mehr</strong>.
+          </p>
+        </div>
+
+        <div class="card" id="teacherCard" style="display:none; margin-top:14px;">
+          <div class="row" style="justify-content:space-between;">
+            <h2 style="margin:0;">Lehrermodus</h2>
+            <button id="closeTeacherBtn" class="ghost">Schließen</button>
+          </div>
+
+          <p class="small muted" style="margin-top:8px;">
+            Einstellungen werden im Browser gespeichert (dieses Gerät).
+          </p>
+
+          <div id="teacherLocked">
+            <div class="row">
+              <input id="teacherPin" type="password" placeholder="PIN eingeben" />
+              <button id="unlockTeacherBtn">Entsperren</button>
+            </div>
+            <p class="small muted" style="margin-top:8px;">
+              PIN im Code oben ändern: <code class="kbd">TEACHER_PIN</code>
+            </p>
+          </div>
+
+          <div id="teacherUnlocked" style="display:none;">
+            <div class="card" style="box-shadow:none; border:1px solid #e5e7eb;">
+              <div class="row" style="justify-content:space-between;">
+                <strong>Einstellungen (JSON)</strong>
+                <span class="tag">Zufällig + ohne Duplikate</span>
+              </div>
+              <p class="small muted" style="margin:8px 0 10px;">
+                Wichtig: Der Zahlenbereich muss groß genug sein: <code class="kbd">maxNumber - minNumber + 1 ≥ totalQuestions</code>.
+              </p>
+              <textarea id="teacherJson"></textarea>
+              <div class="row" style="margin-top:10px;">
+                <button id="saveTeacherBtn" class="secondary">Speichern</button>
+                <button id="resetTeacherBtn" class="ghost">Standard</button>
+                <span id="teacherMsg" class="small muted"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="gameCard" style="display:none; margin-top:14px;">
+          <div class="question" id="questionText">…</div>
+          <p class="hint" id="hintText">…</p>
+
+          <div class="row">
+            <input id="answerInput" type="text" inputmode="numeric" autocomplete="off" placeholder="Antwort…" />
+            <button id="checkBtn">Prüfen</button>
+            <button id="nextBtn" class="secondary" disabled>Weiter ▶</button>
+            <button id="restartBtn" class="ghost" title="Neustart">Abbrechen</button>
+          </div>
+
+          <div id="feedback" class="feedback" style="display:none;"></div>
+          <p class="small muted" style="margin-top:12px;">
+            Tipp: Binär nur 0/1 (führende Nullen ok). Dezimal nur Ziffern.
+          </p>
+        </div>
+
+        <div class="card" id="resultCard" style="display:none; margin-top:14px;">
+          <h2>Ergebnis</h2>
+          <p id="resultText" style="font-size:1.05rem; margin:0 0 12px;"></p>
+          <div id="review"></div>
+          <div class="row" style="margin-top:12px;">
+            <button id="playAgainBtn" class="secondary">Nochmal spielen</button>
+            <a href="./index.html" class="ghost"
+               style="text-decoration:none; padding:10px 14px; border-radius:10px; background:#e5e7eb; color:#111; font-weight:800;">
+              ← Startseite
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <h2 style="margin:0;">Aktuelle Runde</h2>
+          <span class="tag">Auto-Schwierigkeit</span>
+        </div>
+        <ul class="small muted" style="margin-top:10px;">
+          <li><strong>Fragen:</strong> <span id="cfgQuestions">10</span></li>
+          <li><strong>Hinweise bis:</strong> Frage <span id="cfgHints">3</span></li>
+          <li><strong>Zahlenbereich:</strong> <span id="cfgRange">0–255</span></li>
+          <li><strong>Timer:</strong> <span id="cfgTimer">30</span>s pro Frage</li>
+          <li><strong>Mix:</strong> <span id="cfgMix">50%</span> Dez→Bin</li>
+        </ul>
+        <p class="small muted">
+          Auto-Schwierigkeit bedeutet hier: In der Runde werden anfangs eher kleinere Zahlen gewählt, später eher größere (innerhalb deines Bereichs).
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ===========================
+  // Lehr-PIN (hier ändern)
+  // ===========================
+  const TEACHER_PIN = "1234";
+
+  // ===========================
+  // Default-Config
+  // ===========================
+  const DEFAULT_CONFIG = {
+    totalQuestions: 10,
+    hintsUntilQuestion: 3,        // ab Frage 4 keine Hinweise
+    minNumber: 0,
+    maxNumber: 255,
+    dec2binRatio: 0.5,            // 0..1
+    secondsPerQuestion: 30,       // Timer pro Frage
+    avoidDuplicates: true         // muss für "keine doppelten Zahlen" true sein
+  };
+
+  const CFG_KEY = "binaerquest_cfg_v2";
+  function loadConfig() {
+    try {
+      const raw = localStorage.getItem(CFG_KEY);
+      const cfg = raw ? JSON.parse(raw) : null;
+      if (!cfg) return structuredClone(DEFAULT_CONFIG);
+      return { ...structuredClone(DEFAULT_CONFIG), ...cfg };
+    } catch { return structuredClone(DEFAULT_CONFIG); }
+  }
+  function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
+  let config = loadConfig();
+
+  // ===========================
+  // Helpers
+  // ===========================
+  const decToBin = (n) => n.toString(2);
+  const binToDec = (b) => parseInt(b, 2);
+  const normalizeBinary = (s) => s.replace(/\s+/g, "");
+  const normalizeNumber = (s) => s.trim();
+  const isValidBinary = (s) => /^[01]+$/.test(s);
+  const isValidDecimal = (s) => /^\d+$/.test(s);
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+
+  function clampInt(x, min, max) {
+    x = Number(x);
+    if (!Number.isFinite(x)) return min;
+    x = Math.floor(x);
+    return Math.max(min, Math.min(max, x));
+  }
+
+  // zufällige ganze Zahl inkl.
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // ===========================
+  // Auto-Schwierigkeit + No-Duplicates
+  // ===========================
+  function makeUniqueNumberList(cfg) {
+    const total = clampInt(cfg.totalQuestions, 1, 200);
+    let minN = clampInt(cfg.minNumber, 0, 1_000_000);
+    let maxN = clampInt(cfg.maxNumber, 0, 1_000_000);
+    if (minN > maxN) [minN, maxN] = [maxN, minN];
+
+    const size = maxN - minN + 1;
+    if (cfg.avoidDuplicates && size < total) {
+      throw new Error(`Zahlenbereich zu klein: ${size} mögliche Zahlen, aber ${total} Fragen. Erhöhe maxNumber oder reduziere totalQuestions.`);
+    }
+
+    // Auto-Schwierigkeit: wir bauen eine Liste, die im Schnitt später größere Zahlen hat.
+    // Vorgehen:
+    // - Für jede Frage i berechnen wir eine Obergrenze "cap", die mit i wächst.
+    // - Dann ziehen wir zufällige Zahlen aus [minN..cap], ohne Duplikate.
+    const used = new Set();
+    const nums = [];
+
+    for (let i = 0; i < total; i++) {
+      const t = (total <= 1) ? 1 : (i / (total - 1)); // 0..1
+      // cap wächst von minN..maxN, aber nicht ganz linear (leicht gekrümmt)
+      const cap = minN + Math.floor((maxN - minN) * Math.pow(t, 0.85));
+      const hi = Math.max(minN, cap);
+
+      let n, tries = 0;
+      do {
+        n = randInt(minN, hi);
+        tries++;
+        if (!cfg.avoidDuplicates) break;
+      } while (used.has(n) && tries < 2000);
+
+      // falls wir in frühen Fragen "zu wenig" Auswahl hatten, erweitern wir im Notfall auf maxN
+      tries = 0;
+      while (cfg.avoidDuplicates && used.has(n) && tries < 5000) {
+        n = randInt(minN, maxN);
+        tries++;
+      }
+
+      used.add(n);
+      nums.push(n);
+    }
+    return nums;
+  }
+
+  function makeQuestionForNumber(n, cfg) {
+    const mode = (Math.random() < Number(cfg.dec2binRatio)) ? "dec2bin" : "bin2dec";
+    if (mode === "dec2bin") {
+      return {
+        type: "dec2bin",
+        value: n,
+        prompt: `Wandle ${n} in Binär um.`,
+        hint: `Tipp: Zerlege ${n} in Stellenwerte (…, 64, 32, 16, 8, 4, 2, 1).`
+      };
+    } else {
+      const b = decToBin(n);
+      return {
+        type: "bin2dec",
+        value: b,
+        prompt: `Wandle ${b} in Dezimal um.`,
+        hint: `Tipp: Addiere die Stellenwerte, wo eine 1 steht.`
+      };
+    }
+  }
+
+  // ===========================
+  // Answer check (value-based)
+  // ===========================
+  function isCorrectAnswer(q, raw) {
+    if (q.type === "dec2bin") {
+      const s = normalizeBinary(raw);
+      if (!isValidBinary(s)) return { valid:false };
+      return { valid:true, ok: binToDec(s) === Number(q.value) };
+    } else {
+      const s = normalizeNumber(raw);
+      if (!isValidDecimal(s)) return { valid:false };
+      return { valid:true, ok: Number(s) === binToDec(String(q.value)) };
+    }
+  }
+  function expectedDisplay(q) {
+    return (q.type === "dec2bin") ? decToBin(Number(q.value)) : String(binToDec(String(q.value)));
+  }
+
+  // ===========================
+  // UI refs
+  // ===========================
+  const statusBar = document.getElementById("statusBar");
+  const playerNameTop = document.getElementById("playerNameTop");
+  const qIndexEl = document.getElementById("qIndex");
+  const qTotalEl = document.getElementById("qTotal");
+  const scoreEl = document.getElementById("score");
+  const timeLeftEl = document.getElementById("timeLeft");
+
+  const introCard = document.getElementById("introCard");
+  const teacherCard = document.getElementById("teacherCard");
+  const teacherLocked = document.getElementById("teacherLocked");
+  const teacherUnlocked = document.getElementById("teacherUnlocked");
+  const teacherJson = document.getElementById("teacherJson");
+  const teacherMsg = document.getElementById("teacherMsg");
+
+  const gameCard = document.getElementById("gameCard");
+  const resultCard = document.getElementById("resultCard");
+
+  const nameInput = document.getElementById("nameInput");
+  const startBtn = document.getElementById("startBtn");
+
+  const questionTextEl = document.getElementById("questionText");
+  const hintTextEl = document.getElementById("hintText");
+  const answerInput = document.getElementById("answerInput");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const feedbackEl = document.getElementById("feedback");
+
+  const resultText = document.getElementById("resultText");
+  const reviewEl = document.getElementById("review");
+  const playAgainBtn = document.getElementById("playAgainBtn");
+
+  const openTeacherBtn = document.getElementById("openTeacherBtn");
+  const closeTeacherBtn = document.getElementById("closeTeacherBtn");
+  const teacherPin = document.getElementById("teacherPin");
+  const unlockTeacherBtn = document.getElementById("unlockTeacherBtn");
+  const saveTeacherBtn = document.getElementById("saveTeacherBtn");
+  const resetTeacherBtn = document.getElementById("resetTeacherBtn");
+
+  const cfgQuestions = document.getElementById("cfgQuestions");
+  const cfgHints = document.getElementById("cfgHints");
+  const cfgRange = document.getElementById("cfgRange");
+  const cfgTimer = document.getElementById("cfgTimer");
+  const cfgMix = document.getElementById("cfgMix");
+
+  // ===========================
+  // State
+  // ===========================
+  let playerName = "";
+  let idx = 0;
+  let score = 0;
+  let firstTryStillPossible = true;
+  let questions = []; // generated per game
+  const history = []; // {prompt, correct, user, ok, tries, gotPoint}
+  let timerId = null;
+  let secondsLeft = 0;
+
+  function setFeedback(ok, msg) {
+    feedbackEl.style.display = "block";
+    feedbackEl.className = "feedback " + (ok ? "ok" : "bad");
+    feedbackEl.innerHTML = msg;
+  }
+
+  function stopTimer() {
+    if (timerId) clearInterval(timerId);
+    timerId = null;
+  }
+
+  function startTimerForQuestion() {
+    stopTimer();
+    secondsLeft = clampInt(config.secondsPerQuestion, 5, 600);
+    timeLeftEl.textContent = String(secondsLeft);
+
+    timerId = setInterval(() => {
+      secondsLeft -= 1;
+      timeLeftEl.textContent = String(Math.max(0, secondsLeft));
+
+      if (secondsLeft <= 0) {
+        stopTimer();
+        // Zeit abgelaufen: gilt wie "Fehler gemacht" => keine Punkte mehr möglich, aber weiter probieren
+        if (firstTryStillPossible) firstTryStillPossible = false;
+        setFeedback(false, "⏱️ Zeit abgelaufen! Du darfst weiter probieren, aber für diese Frage gibt es keine Punkte mehr.");
+        answerInput.focus();
+        answerInput.select();
+      }
+    }, 1000);
+  }
+
+  function refreshConfigSummary() {
+    cfgQuestions.textContent = String(config.totalQuestions);
+    cfgHints.textContent = String(config.hintsUntilQuestion);
+    cfgRange.textContent = `${config.minNumber}–${config.maxNumber}`;
+    cfgTimer.textContent = String(config.secondsPerQuestion);
+    cfgMix.textContent = `${Math.round(Number(config.dec2binRatio) * 100)}%`;
+  }
+
+  function currentQuestion() { return questions[idx]; }
+
+  function renderQuestion() {
+    qTotalEl.textContent = String(questions.length);
+    qIndexEl.textContent = String(idx + 1);
+    scoreEl.textContent = String(score);
+
+    const q = currentQuestion();
+    questionTextEl.textContent = q.prompt;
+
+    const showHint = (idx + 1) <= Number(config.hintsUntilQuestion);
+    if (showHint && q.hint) {
+      hintTextEl.style.display = "block";
+      hintTextEl.textContent = "Hinweis: " + q.hint;
+    } else {
+      hintTextEl.style.display = "none";
+      hintTextEl.textContent = "";
+    }
+
+    feedbackEl.style.display = "none";
+    answerInput.value = "";
+    answerInput.focus();
+
+    nextBtn.disabled = true;
+    checkBtn.disabled = false;
+    firstTryStillPossible = true;
+
+    answerInput.placeholder = (q.type === "dec2bin")
+      ? "Binär (z.B. 101 oder 00000101)…"
+      : "Dezimal (z.B. 10)…";
+
+    startTimerForQuestion();
+  }
+
+  function finishGame() {
+    stopTimer();
+    gameCard.style.display = "none";
+    resultCard.style.display = "block";
+
+    const percent = Math.round((score / questions.length) * 100);
+    resultText.textContent = `${playerName}: ${score}/${questions.length} Punkte (${percent}%).`;
+
+    reviewEl.innerHTML = history.map((h, i) => {
+      const icon = h.ok ? "✅" : "❌";
+      const pointTxt = h.gotPoint ? " (+1 Punkt)" : " (0 Punkte)";
+      return `<div style="margin:6px 0; padding:10px; border-radius:10px; background:#f3f4f6;">
+        <strong>${icon} Frage ${i+1}:</strong> ${escapeHtml(h.prompt)}<br/>
+        <span class="small">
+          Versuche: <strong>${h.tries}</strong>${pointTxt}<br/>
+          Deine letzte Antwort: <code class="kbd">${escapeHtml(h.user)}</code> — Richtig (eine mögliche Schreibweise): <code class="kbd">${escapeHtml(h.correct)}</code>
+        </span>
+      </div>`;
+    }).join("");
+  }
+
+  function checkAnswer() {
+    const q = currentQuestion();
+    const raw = answerInput.value;
+
+    if (!history[idx]) {
+      history[idx] = { prompt: q.prompt, correct: expectedDisplay(q), user: "", ok: false, tries: 0, gotPoint: false };
+    }
+    const h = history[idx];
+    h.tries += 1;
+
+    const res = isCorrectAnswer(q, raw);
+    if (!res.valid) {
+      setFeedback(false, `⚠️ Bitte gültig eingeben. ${
+        q.type === "dec2bin" ? "Binär: nur 0 und 1." : "Dezimal: nur Ziffern."
+      }`);
+      return;
+    }
+
+    h.user = (q.type === "dec2bin") ? normalizeBinary(raw) : normalizeNumber(raw);
+
+    if (res.ok) {
+      h.ok = true;
+
+      // Punkte nur wenn 1. Versuch UND Timer nicht abgelaufen war (firstTryStillPossible)
+      if (firstTryStillPossible) {
+        score += 1;
+        h.gotPoint = true;
+        setFeedback(true, `✅ Richtig! <strong>+1 Punkt</strong>. (z.B. <code class="kbd">${expectedDisplay(q)}</code>)`);
+      } else {
+        h.gotPoint = false;
+        setFeedback(true, `✅ Richtig! (Für diese Frage gibt es keine Punkte mehr.)`);
+      }
+
+      scoreEl.textContent = String(score);
+      checkBtn.disabled = true;
+      nextBtn.disabled = false;
+      stopTimer(); // nach richtig: Timer stop, weiter zur nächsten Frage
+    } else {
+      firstTryStillPossible = false;
+      h.ok = false;
+      setFeedback(false, `❌ Noch nicht. Versuch es nochmal! (Für diese Frage sind jetzt <strong>keine Punkte</strong> mehr möglich.)`);
+      answerInput.focus();
+      answerInput.select();
+      nextBtn.disabled = true;
+    }
+  }
+
+  function nextQuestion() {
+    if (idx < questions.length - 1) {
+      idx += 1;
+      renderQuestion();
+    } else {
+      finishGame();
+    }
+  }
+
+  function startGame() {
+    playerName = nameInput.value.trim() || "Unbekannt";
+    playerNameTop.textContent = playerName;
+
+    // Reload config
+    config = loadConfig();
+    refreshConfigSummary();
+
+    // Generate unique numbers + questions
+    let nums;
+    try {
+      nums = makeUniqueNumberList(config);
+    } catch (e) {
+      alert(e.message);
+      return;
+    }
+
+    questions = nums.map(n => makeQuestionForNumber(n, config));
+
+    introCard.style.display = "none";
+    teacherCard.style.display = "none";
+    resultCard.style.display = "none";
+    gameCard.style.display = "block";
+    statusBar.style.display = "flex";
+
+    idx = 0; score = 0; history.length = 0;
+    renderQuestion();
+  }
+
+  function restartToIntro() {
+    stopTimer();
+    statusBar.style.display = "none";
+    introCard.style.display = "block";
+    gameCard.style.display = "none";
+    resultCard.style.display = "none";
+  }
+
+  // ===========================
+  // Teacher mode
+  // ===========================
+  function openTeacher() {
+    teacherCard.style.display = "block";
+    teacherLocked.style.display = "block";
+    teacherUnlocked.style.display = "none";
+    teacherPin.value = "";
+    teacherMsg.textContent = "";
+    teacherJson.value = "";
+    teacherPin.focus();
+  }
+  function closeTeacher() { teacherCard.style.display = "none"; }
+
+  function unlockTeacher() {
+    if (teacherPin.value !== TEACHER_PIN) {
+      teacherMsg.textContent = "❌ Falsche PIN.";
+      teacherMsg.className = "danger";
+      return;
+    }
+    teacherMsg.textContent = "✅ Entsperrt.";
+    teacherMsg.className = "success";
+    teacherLocked.style.display = "none";
+    teacherUnlocked.style.display = "block";
+    teacherJson.value = JSON.stringify(loadConfig(), null, 2);
+  }
+
+  function validateConfig(cfg) {
+    if (!cfg || typeof cfg !== "object") return "Config ist kein Objekt.";
+    const tq = Number(cfg.totalQuestions);
+    if (!Number.isFinite(tq) || tq < 1 || tq > 200) return "totalQuestions muss 1..200 sein.";
+
+    let minN = Number(cfg.minNumber), maxN = Number(cfg.maxNumber);
+    if (!Number.isFinite(minN) || !Number.isFinite(maxN)) return "minNumber/maxNumber müssen Zahlen sein.";
+    minN = Math.floor(minN); maxN = Math.floor(maxN);
+    if (minN < 0 || maxN < 0) return "minNumber/maxNumber müssen >= 0 sein.";
+
+    const size = Math.abs(maxN - minN) + 1;
+    if (cfg.avoidDuplicates && size < tq) return `Zahlenbereich zu klein: ${size} mögliche Zahlen, aber ${tq} Fragen.`;
+
+    const hu = Number(cfg.hintsUntilQuestion);
+    if (!Number.isFinite(hu) || hu < 0 || hu > 200) return "hintsUntilQuestion muss 0..200 sein.";
+
+    const r = Number(cfg.dec2binRatio);
+    if (!Number.isFinite(r) || r < 0 || r > 1) return "dec2binRatio muss 0..1 sein.";
+
+    const spq = Number(cfg.secondsPerQuestion);
+    if (!Number.isFinite(spq) || spq < 5 || spq > 600) return "secondsPerQuestion muss 5..600 sein.";
+
+    return null;
+  }
+
+  function saveTeacher() {
+    let cfg;
+    try { cfg = JSON.parse(teacherJson.value); }
+    catch { teacherMsg.textContent = "❌ JSON ungültig."; teacherMsg.className = "danger"; return; }
+
+    const err = validateConfig(cfg);
+    if (err) { teacherMsg.textContent = "❌ " + err; teacherMsg.className = "danger"; return; }
+
+    saveConfig(cfg);
+    config = loadConfig();
+    refreshConfigSummary();
+
+    teacherMsg.textContent = "✅ Gespeichert.";
+    teacherMsg.className = "success";
+  }
+
+  function resetTeacher() {
+    saveConfig(structuredClone(DEFAULT_CONFIG));
+    teacherJson.value = JSON.stringify(loadConfig(), null, 2);
+    config = loadConfig();
+    refreshConfigSummary();
+    teacherMsg.textContent = "✅ Standard geladen.";
+    teacherMsg.className = "success";
+  }
+
+  // ===========================
+  // Events
+  // ===========================
+  startBtn.addEventListener("click", startGame);
+  nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startGame(); });
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+
+  restartBtn.addEventListener("click", restartToIntro);
+  playAgainBtn.addEventListener("click", restartToIntro);
+
+  answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !checkBtn.disabled) checkAnswer();
+    else if (e.key === "Enter" && !nextBtn.disabled) nextQuestion();
+  });
+
+  openTeacherBtn.addEventListener("click", openTeacher);
+  closeTeacherBtn.addEventListener("click", closeTeacher);
+  unlockTeacherBtn.addEventListener("click", unlockTeacher);
+  teacherPin.addEventListener("keydown", (e) => { if (e.key === "Enter") unlockTeacher(); });
+  saveTeacherBtn.addEventListener("click", saveTeacher);
+  resetTeacherBtn.addEventListener("click", resetTeacher);
+
+  // Init
+  refreshConfigSummary();
+  timeLeftEl.textContent = "—";
+})();
+</script>
+</body>
+</html>
