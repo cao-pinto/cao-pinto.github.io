@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mathematik – Einmaleins (mit Code)</title>
+  <title>Mathematik – Einmaleins (120s)</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin:0; background:#f6f7fb; color:#111; }
@@ -33,7 +33,7 @@
         <a class="ghost" href="./index.html">← Startseite</a>
       </div>
       <p class="muted" style="margin:10px 0 0;">
-        Login mit Schüler-Code. Gespeichert werden richtig, falsch, Gesamt und Verhältnis (Accuracy).
+        Login mit Code (funktioniert auf mehreren Geräten). Gespeichert: richtig/falsch/gesamt/accuracy.
       </p>
     </div>
 
@@ -41,12 +41,12 @@
       <h2 style="margin-top:0;">Schüler-Code</h2>
       <div class="row">
         <input id="code" placeholder="Code (z.B. AB7K2)" style="text-transform:uppercase;" />
-        <button id="claimBtn">Anmelden</button>
+        <button id="loginBtn">Anmelden</button>
         <button class="ghost" id="logoutBtn" style="display:none;">Logout</button>
       </div>
       <div id="loginMsg" class="feedback"></div>
       <div class="muted" style="margin-top:10px;">
-        Falls der Code „schon benutzt“ ist, bitte Lehrperson fragen.
+        Tipp: Derselbe Code geht auf mehreren Geräten.
       </div>
     </div>
 
@@ -98,7 +98,8 @@
 
     const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
-    const FN_CLAIM_CODE = "https://dnlencbwbbriijmzijci.functions.supabase.co/claim_code";
+
+    const FN_STUDENT_LOGIN = "https://dnlencbwbbriijmzijci.functions.supabase.co/student_login";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -152,7 +153,7 @@
     function tick(){
       t -= 1;
       $("time").textContent = String(t);
-      if (t <= 0) stop(true);
+      if (t <= 0) stop();
     }
 
     async function startRun(selectedMode){
@@ -167,7 +168,6 @@
 
       $("time").textContent = String(DURATION);
       fb.style.display = "none";
-
       updateAccUI();
 
       $("runArea").style.display = "block";
@@ -199,7 +199,7 @@
       newTask();
     }
 
-    async function stop(fromTimer){
+    async function stop(){
       if (timer) clearInterval(timer);
       timer = null;
       $("runArea").style.display = "none";
@@ -256,9 +256,8 @@
 
       const bestCorrect = attempts.reduce((m,a)=>Math.max(m,a.correct_count),0);
       const bestAcc = attempts.reduce((m,a)=>Math.max(m,Number(a.accuracy ?? 0)),0);
-
       const last5 = attempts.slice(0,5);
-      const avgAcc5 = last5.length ? (last5.reduce((s,a)=>s+Number(a.accuracy ?? 0),0)/last5.length) : 0;
+      const avgAcc5 = last5.reduce((s,a)=>s+Number(a.accuracy ?? 0),0) / last5.length;
 
       $("statsBox").innerHTML = `
         <div class="ok">
@@ -289,50 +288,40 @@
       `;
     }
 
-    async function ensureAnonSession(){
-      const { data } = await supabase.auth.getSession();
-      if (data.session) return;
-      await supabase.auth.signInAnonymously();
-    }
-
-    async function claimCode(){
-      await ensureAnonSession();
-
+    async function codeLogin(){
       const code = $("code").value.trim().toUpperCase();
       if (!code) { showMsg(loginMsg, false, "Bitte Code eingeben."); return; }
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) { showMsg(loginMsg, false, "Kein Token. Bitte Seite neu laden."); return; }
-
       try {
-        const res = await fetch(FN_CLAIM_CODE, {
+        // 1) Ensure Auth-User exists + Student-Daten holen
+        const res = await fetch(FN_STUDENT_LOGIN, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-            "apikey": SUPABASE_ANON_KEY
-          },
+          headers: { "Content-Type":"application/json", "apikey": SUPABASE_ANON_KEY },
           body: JSON.stringify({ code })
         });
 
         const json = await res.json();
         if (!res.ok) {
-          showMsg(loginMsg, false, `❌ ${json.error || "Fehler"}`);
+          showMsg(loginMsg, false, `❌ ${json.error || "Fehler"}${json.details ? " – " + json.details : ""}`);
           return;
         }
 
+        const email = json.email;
         studentId = json.student.id;
         studentName = json.student.display_name;
 
-        localStorage.setItem("student_id", studentId);
-        localStorage.setItem("student_name", studentName);
+        // 2) Login per Code (password)
+        const { error: signErr } = await supabase.auth.signInWithPassword({ email, password: code });
+        if (signErr) {
+          showMsg(loginMsg, false, `Login fehlgeschlagen: ${signErr.message}`);
+          return;
+        }
 
         $("studentName").textContent = studentName;
-        showMsg(loginMsg, true, `✅ Willkommen, <strong>${studentName}</strong>!`);
         $("logoutBtn").style.display = "inline-block";
-
         $("gameCard").style.display = "block";
+
+        showMsg(loginMsg, true, `✅ Willkommen, <strong>${studentName}</strong>!`);
         await loadHistory();
       } catch (e) {
         showMsg(loginMsg, false, `Netzwerkfehler: ${String(e)}`);
@@ -340,8 +329,6 @@
     }
 
     async function logout(){
-      localStorage.removeItem("student_id");
-      localStorage.removeItem("student_name");
       studentId = null;
       studentName = null;
       $("logoutBtn").style.display = "none";
@@ -350,29 +337,18 @@
       showMsg(loginMsg, true, "Abgemeldet.");
     }
 
-    $("claimBtn").addEventListener("click", claimCode);
-    $("code").addEventListener("keydown", (e) => { if (e.key === "Enter") claimCode(); });
+    $("loginBtn").addEventListener("click", codeLogin);
+    $("code").addEventListener("keydown", (e) => { if (e.key === "Enter") codeLogin(); });
     $("logoutBtn").addEventListener("click", logout);
 
     $("smallBtn").addEventListener("click", () => startRun("small"));
     $("bigBtn").addEventListener("click", () => startRun("big"));
     $("okBtn").addEventListener("click", check);
-    $("stopBtn").addEventListener("click", () => stop(false));
+    $("stopBtn").addEventListener("click", stop);
     $("answer").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
 
-    // Auto-restore (nur auf diesem Gerät)
-    await ensureAnonSession();
-    const savedId = localStorage.getItem("student_id");
-    const savedName = localStorage.getItem("student_name");
-    if (savedId && savedName) {
-      studentId = savedId;
-      studentName = savedName;
-      $("studentName").textContent = studentName;
-      $("logoutBtn").style.display = "inline-block";
-      $("gameCard").style.display = "block";
-      showMsg(loginMsg, true, `✅ Willkommen zurück, <strong>${studentName}</strong>`);
-      await loadHistory();
-    }
+    // optional: wenn Session vorhanden, nichts automatisch machen (weil Schüler auf fremdem Gerät sein könnte)
+    // Du kannst hier später "Session restore" einbauen, wenn du willst.
   </script>
 </body>
 </html>
