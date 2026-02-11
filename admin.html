@@ -189,11 +189,28 @@
           body: JSON.stringify({ email, password, display_name })
         });
 
-        const json = await res.json();
+        let text = "";
+        try { text = await res.text(); } catch {}
+        
+        let json = null;
+        try { json = text ? JSON.parse(text) : null; } catch {}
+        
+        // Wenn kein JSON: zeig Rohtext + Status
         if (!res.ok) {
-          msg(createMsg, false, `Fehler: ${escapeHtml(json.error || "unbekannt")}${json.details ? " – " + escapeHtml(json.details) : ""}`);
+          const errMain = json?.error || json?.message || `HTTP ${res.status}`;
+          const errDetails = json?.details || (text && !json ? text : "");
+          msg(createMsg, false, `Fehler: ${escapeHtml(errMain)}${errDetails ? " – " + escapeHtml(errDetails) : ""}`);
           return;
         }
+        
+        // Wenn ok: json muss da sein
+        if (!json?.teacher) {
+          msg(createMsg, false, `Unerwartete Antwort: ${escapeHtml(text || "leer")}`);
+          return;
+        }
+        
+        msg(createMsg, true, `✅ Lehrer erstellt: <strong>${escapeHtml(json.teacher.display_name)}</strong>`);
+
 
         msg(createMsg, true, `✅ Lehrer erstellt: <strong>${escapeHtml(json.teacher.display_name)}</strong>`);
         $("tName").value = "";
