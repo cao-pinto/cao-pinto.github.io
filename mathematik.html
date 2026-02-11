@@ -3,310 +3,115 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mathematik – Kopfrechnen (Einmaleins)</title>
+  <title>Mathematik – Einmaleins (mit Code)</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin:0; background:#f6f7fb; color:#111; }
     .wrap { max-width: 980px; margin:0 auto; padding:24px; }
-    header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-    h1 { margin:0; font-size:1.4rem; }
-    .grid { display:grid; gap:14px; grid-template-columns: 1fr; margin-top:14px; }
-    @media (min-width: 900px){ .grid { grid-template-columns: 1.2fr .8fr; } }
-    .card { background:#fff; border-radius:14px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,.08); }
+    .card { background:#fff; border-radius:14px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:14px; }
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .pill { padding:6px 10px; border-radius:999px; background:#eef2ff; font-weight:900; }
-    input[type="text"]{
-      padding:10px 12px; border-radius:10px; border:1px solid #ccd2e1; font-size:1.05rem; min-width:220px;
-    }
-    button{
-      padding:10px 14px; border-radius:10px; border:0; background:#1f6feb; color:#fff; font-weight:900; cursor:pointer;
-    }
-    button.secondary{ background:#111827; }
-    button.ghost{ background:#e5e7eb; color:#111; }
+    input, select { padding:10px 12px; border-radius:10px; border:1px solid #ccd2e1; font-size:1rem; }
+    input { min-width:240px; }
+    button { padding:10px 14px; border-radius:10px; border:0; background:#1f6feb; color:#fff; font-weight:900; cursor:pointer; }
+    button.secondary { background:#111827; }
+    button.ghost { background:#e5e7eb; color:#111; }
     a.ghost { text-decoration:none; padding:10px 14px; border-radius:10px; background:#e5e7eb; color:#111; font-weight:900; }
+    .pill { padding:6px 10px; border-radius:999px; background:#eef2ff; font-weight:900; }
     .muted { opacity:.8; }
-    .feedback{ margin-top:12px; padding:12px; border-radius:10px; display:none; }
-    .ok{ background:#ecfdf5; border:1px solid #10b98144; display:block; }
-    .bad{ background:#fef2f2; border:1px solid #ef444444; display:block; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    .ok { background:#ecfdf5; border:1px solid #10b98144; padding:10px; border-radius:10px; }
+    .bad { background:#fef2f2; border:1px solid #ef444444; padding:10px; border-radius:10px; }
+    .feedback { margin-top:12px; display:none; }
+    table { width:100%; border-collapse: collapse; margin-top:10px; }
     th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e7eb; }
     th { font-size:.9rem; opacity:.9; }
-    .tag { display:inline-block; font-size:.85rem; padding:2px 8px; border-radius:999px; background:#f3f4f6; }
+    code { background:#111827; color:#fff; padding:2px 6px; border-radius:6px; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <h1>Mathematik – Kopfrechnen ⚡ (Einmaleins, 120s)</h1>
-      <a class="ghost" href="./index.html">← Startseite</a>
-    </header>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <h1 style="margin:0;">Mathematik – Einmaleins ⚡ (120s)</h1>
+        <a class="ghost" href="./index.html">← Startseite</a>
+      </div>
+      <p class="muted" style="margin:10px 0 0;">
+        Login mit Schüler-Code. Ergebnisse werden gespeichert und du siehst deinen Verlauf.
+      </p>
+    </div>
 
-    <div class="grid">
-      <!-- LEFT: Game -->
-      <div class="card">
-        <h2 style="margin:0 0 10px; font-size:1.15rem;">Spiel</h2>
-        <p class="muted" style="margin:0 0 12px;">
-          Wähle Modus und löse in <strong>120 Sekunden</strong> so viele Aufgaben wie möglich.
-        </p>
+    <div class="card" id="loginCard">
+      <h2 style="margin-top:0;">Schüler-Code</h2>
+      <div class="row">
+        <input id="code" placeholder="Code (z.B. AB7K2)" style="text-transform:uppercase;" />
+        <button id="claimBtn">Anmelden</button>
+        <button class="ghost" id="logoutBtn" style="display:none;">Logout</button>
+      </div>
+      <div id="loginMsg" class="feedback"></div>
+      <div class="muted" style="margin-top:10px;">
+        Falls der Code „schon benutzt“ ist, bitte Lehrperson fragen.
+      </div>
+    </div>
 
-        <div class="row" style="margin-bottom:10px;">
-          <label class="muted"><strong>Name:</strong></label>
-          <input id="nameInput" type="text" maxlength="20" placeholder="z.B. Alex" />
+    <div class="card" id="gameCard" style="display:none;">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <div class="muted">Angemeldet als:</div>
+          <div style="font-weight:900; font-size:1.1rem;" id="studentName">—</div>
         </div>
-
-        <div class="row" style="margin-bottom:10px;">
-          <button id="smallBtn">Kleines 1×1 (1–10)</button>
-          <button id="bigBtn" class="secondary">Großes 1×1 (1–20)</button>
-        </div>
-
-        <div id="gameArea" style="display:none; margin-top:12px;">
-          <div class="row" style="justify-content:space-between;">
-            <div class="pill">Zeit: <span id="time">120</span>s</div>
-            <div class="pill">Richtig: <span id="right">0</span></div>
-            <div class="pill">Streak: <span id="streak">0</span></div>
-          </div>
-
-          <div style="margin-top:14px;">
-            <div class="muted">Rechnung:</div>
-            <div id="task" style="font-size:1.8rem; font-weight:900; margin-top:4px;">—</div>
-          </div>
-
-          <div class="row" style="margin-top:12px;">
-            <input id="answer" type="text" inputmode="numeric" autocomplete="off" placeholder="Ergebnis…" />
-            <button id="okBtn">OK</button>
-            <button id="stopBtn" class="ghost">Stop</button>
-          </div>
-
-          <div id="fb" class="feedback"></div>
-          <p class="muted" style="margin-top:10px;">Tipp: Enter geht auch.</p>
-        </div>
-
-        <div id="resultArea" style="display:none; margin-top:14px;">
-          <h3 style="margin:0 0 8px;">Ergebnis</h3>
-          <p id="resultText" style="margin:0 0 10px;"></p>
-          <div class="row">
-            <button id="againBtn">Nochmal</button>
-          </div>
+        <div class="row">
+          <button id="smallBtn">Kleines 1×1</button>
+          <button id="bigBtn" class="secondary">Großes 1×1</button>
         </div>
       </div>
 
-      <!-- RIGHT: Highscore -->
-      <div class="card">
+      <div id="runArea" style="display:none; margin-top:14px;">
         <div class="row" style="justify-content:space-between;">
-          <h2 style="margin:0; font-size:1.15rem;">Highscore</h2>
-          <span class="tag">pro Modus</span>
-        </div>
-        <p class="muted" style="margin:8px 0 12px;">
-          Top-10 auf diesem Gerät/Browser (LocalStorage).
-        </p>
-
-        <div class="row">
-          <button id="showSmall" class="ghost">Kleines 1×1</button>
-          <button id="showBig" class="ghost">Großes 1×1</button>
+          <div class="pill">Zeit: <span id="time">120</span>s</div>
+          <div class="pill">Richtig: <span id="right">0</span></div>
+          <div class="pill">Streak: <span id="streak">0</span></div>
         </div>
 
-        <div id="hsBox" class="muted" style="margin-top:10px;">—</div>
+        <div style="margin-top:14px;">
+          <div class="muted">Rechnung:</div>
+          <div id="task" style="font-size:1.8rem; font-weight:900;">—</div>
+        </div>
 
         <div class="row" style="margin-top:12px;">
-          <button id="clearHsBtn" class="ghost">Highscore löschen</button>
+          <input id="answer" inputmode="numeric" autocomplete="off" placeholder="Ergebnis…" />
+          <button id="okBtn">OK</button>
+          <button class="ghost" id="stopBtn">Stop</button>
         </div>
+
+        <div id="fb" class="feedback"></div>
+      </div>
+
+      <div id="historyArea" style="margin-top:14px;">
+        <h3 style="margin:0 0 8px;">Meine Entwicklung</h3>
+        <div id="statsBox" class="muted">—</div>
+        <div id="historyBox" class="muted">—</div>
       </div>
     </div>
   </div>
 
-<script>
-(() => {
-  const DURATION = 120;
-  const KEY_SMALL = "kopfrechnen_hs_small_v1";
-  const KEY_BIG   = "kopfrechnen_hs_big_v1";
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const nameInput = document.getElementById("nameInput");
-  const smallBtn  = document.getElementById("smallBtn");
-  const bigBtn    = document.getElementById("bigBtn");
+    // TODO: HIER EINTRAGEN (Project Settings → API)
+    const SUPABASE_URL = "PASTE_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY";
 
-  const gameArea = document.getElementById("gameArea");
-  const resultArea = document.getElementById("resultArea");
+    // TODO: Function URL (Edge Functions → claim_code)
+    const FN_CLAIM_CODE = "PASTE_FUNCTION_URL/claim_code";
 
-  const timeEl = document.getElementById("time");
-  const rightEl = document.getElementById("right");
-  const streakEl = document.getElementById("streak");
-  const taskEl = document.getElementById("task");
-  const answerEl = document.getElementById("answer");
-  const okBtn = document.getElementById("okBtn");
-  const stopBtn = document.getElementById("stopBtn");
-  const fb = document.getElementById("fb");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const resultText = document.getElementById("resultText");
-  const againBtn = document.getElementById("againBtn");
+    const DURATION = 120;
+    const $ = (id) => document.getElementById(id);
 
-  const hsBox = document.getElementById("hsBox");
-  const showSmall = document.getElementById("showSmall");
-  const showBig = document.getElementById("showBig");
-  const clearHsBtn = document.getElementById("clearHsBtn");
+    const loginCard = $("loginCard");
+    const gameCard = $("gameCard");
+    const loginMsg = $("loginMsg");
+    const fb = $("fb");
 
-  let mode = "small"; // "small" | "big"
-  let max = 10;
-  let t = DURATION;
-  let timer = null;
-  let right = 0;
-  let streak = 0;
-  let bestStreak = 0;
-  let a = 0, b = 0;
-
-  function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
-  function now(){ return Date.now(); }
-
-  function storageKey(){ return mode === "small" ? KEY_SMALL : KEY_BIG; }
-
-  function loadScores() {
-    try {
-      const raw = localStorage.getItem(storageKey());
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    } catch { return []; }
-  }
-  function saveScores(arr){ localStorage.setItem(storageKey(), JSON.stringify(arr)); }
-
-  function renderScores() {
-    const scores = loadScores();
-    if (!scores.length) { hsBox.innerHTML = "<span class='muted'>Noch keine Einträge.</span>"; return; }
-    hsBox.innerHTML = `
-      <table>
-        <thead><tr><th>#</th><th>Name</th><th>Richtig</th><th>Datum</th></tr></thead>
-        <tbody>
-          ${scores.map((s,i) => {
-            const d = new Date(s.ts);
-            const date = d.toLocaleDateString("de-AT", { year:"numeric", month:"2-digit", day:"2-digit" });
-            return `<tr>
-              <td>${i+1}.</td>
-              <td><strong>${escapeHtml(s.name)}</strong></td>
-              <td>${s.right}</td>
-              <td class="muted">${date}</td>
-            </tr>`;
-          }).join("")}
-        </tbody>
-      </table>
-    `;
-  }
-
-  function addScore(name, right) {
-    const scores = loadScores();
-    scores.push({ name, right, ts: now() });
-    scores.sort((x,y) => (y.right - x.right) || (x.ts - y.ts));
-    saveScores(scores.slice(0,10));
-    renderScores();
-  }
-
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[c]));
-  }
-
-  function setFeedback(ok, msg){
-    fb.className = "feedback " + (ok ? "ok" : "bad");
-    fb.style.display = "block";
-    fb.innerHTML = msg;
-  }
-
-  function newTask(){
-    a = randInt(1, max);
-    b = randInt(1, max);
-    taskEl.textContent = `${a} × ${b} = ?`;
-    answerEl.value = "";
-    answerEl.focus();
-  }
-
-  function tick(){
-    t -= 1;
-    timeEl.textContent = String(t);
-    if (t <= 0) stop(true);
-  }
-
-  function start(selectedMode){
-    mode = selectedMode;
-    max = (mode === "small") ? 10 : 20;
-
-    // reset
-    t = DURATION;
-    right = 0;
-    streak = 0;
-    bestStreak = 0;
-    timeEl.textContent = String(DURATION);
-    rightEl.textContent = "0";
-    streakEl.textContent = "0";
-    fb.style.display = "none";
-
-    resultArea.style.display = "none";
-    gameArea.style.display = "block";
-
-    newTask();
-    if (timer) clearInterval(timer);
-    timer = setInterval(tick, 1000);
-
-    renderScores();
-  }
-
-  function check(){
-    const raw = answerEl.value.trim();
-    if (!/^\d+$/.test(raw)) {
-      setFeedback(false, "⚠️ Bitte nur Ziffern eingeben.");
-      return;
-    }
-    const ans = Number(raw);
-    const correct = a * b;
-
-    if (ans === correct) {
-      right += 1;
-      streak += 1;
-      bestStreak = Math.max(bestStreak, streak);
-      rightEl.textContent = String(right);
-      streakEl.textContent = String(streak);
-      setFeedback(true, "✅ Richtig!");
-      newTask();
-    } else {
-      streak = 0;
-      streakEl.textContent = "0";
-      setFeedback(false, `❌ Falsch. Richtig wäre <strong>${correct}</strong>. Nächste!`);
-      newTask();
-    }
-  }
-
-  function stop(fromTimer){
-    if (timer) clearInterval(timer);
-    timer = null;
-
-    gameArea.style.display = "none";
-    resultArea.style.display = "block";
-
-    const name = nameInput.value.trim() || "Unbekannt";
-    resultText.textContent = `${name} (${mode === "small" ? "Kleines 1×1" : "Großes 1×1"}): ${right} richtig in ${DURATION} Sekunden. Beste Streak: ${bestStreak}.`;
-
-    addScore(name, right);
-
-    if (!fromTimer) renderScores();
-  }
-
-  // UI
-  smallBtn.addEventListener("click", () => start("small"));
-  bigBtn.addEventListener("click", () => start("big"));
-  okBtn.addEventListener("click", check);
-  stopBtn.addEventListener("click", () => stop(false));
-  againBtn.addEventListener("click", () => start(mode));
-  answerEl.addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
-
-  showSmall.addEventListener("click", () => { mode = "small"; max = 10; renderScores(); });
-  showBig.addEventListener("click", () => { mode = "big"; max = 20; renderScores(); });
-
-  clearHsBtn.addEventListener("click", () => {
-    localStorage.removeItem(KEY_SMALL);
-    localStorage.removeItem(KEY_BIG);
-    renderScores();
-  });
-
-  // Init: zeig Small-Highscore
-  renderScores();
-})();
-</script>
-</body>
-</html>
+    let studentId = null;
+    let
