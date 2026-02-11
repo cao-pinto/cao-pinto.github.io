@@ -1,624 +1,608 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="de">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.3">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Binär-Quest – Quiz mit Lehrermodus</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #f6f7fb; color: #111; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+    header { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 1.35rem; }
+    h2 { margin: 0 0 10px; font-size: 1.15rem; }
+    .card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+    .pill { padding: 6px 10px; border-radius: 999px; background: #eef2ff; font-weight: 700; }
+    .question { font-size: 1.2rem; margin: 8px 0 12px; }
+    .hint { margin: 0 0 14px; color: #333; opacity: .85; }
+    input[type="text"], input[type="password"], textarea{
+      font-size: 1.0rem; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid #ccd2e1;
+    }
+    input[type="text"], input[type="password"]{ min-width: 240px; }
+    textarea{ width: 100%; min-height: 240px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    button{
+      padding: 10px 14px; border-radius: 10px; border: 0;
+      background: #1f6feb; color: #fff; font-weight: 800; cursor: pointer;
+    }
+    button.secondary{ background: #111827; }
+    button.ghost{ background: #e5e7eb; color: #111; }
+    button:disabled{ opacity: .55; cursor: not-allowed; }
+    .feedback{ margin-top: 12px; padding: 12px; border-radius: 10px; }
+    .ok{ background: #ecfdf5; border: 1px solid #10b98144; }
+    .bad{ background: #fef2f2; border: 1px solid #ef444444; }
+    .small{ font-size: .92rem; opacity: .88; }
+    .muted{ opacity: .75; }
+    code.kbd { background: #111827; color: #fff; padding: 2px 6px; border-radius: 6px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 900px){ .grid { grid-template-columns: 1.25fr .75fr; } }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e5e7eb; }
+    th { font-size: .9rem; opacity: .9; }
+    .tag { display:inline-block; font-size:.85rem; padding: 2px 8px; border-radius:999px; background:#f3f4f6; }
+    .danger { background:#fee2e2; color:#111; }
+    .success { background:#dcfce7; color:#111; }
   </style>
 </head>
 <body>
-<p class="p1">&lt;!doctype html&gt;</p>
-<p class="p1">&lt;html lang="de"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="utf-8" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width,initial-scale=1" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Binär-Quest – Quiz mit Lehrermodus&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>body { margin: 0; background: #f6f7fb; color: #111; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.wrap { max-width: 980px; margin: 0 auto; padding: 24px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>header { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>h1 { margin: 0; font-size: 1.35rem; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>h2 { margin: 0 0 10px; font-size: 1.15rem; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.pill { padding: 6px 10px; border-radius: 999px; background: #eef2ff; font-weight: 700; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.question { font-size: 1.2rem; margin: 8px 0 12px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.hint { margin: 0 0 14px; color: #333; opacity: .85; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>input[type="text"], input[type="password"], textarea{</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1.0rem; padding: 10px 12px; border-radius: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border: 1px solid #ccd2e1;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>input[type="text"], input[type="password"]{ min-width: 240px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>textarea{ width: 100%; min-height: 240px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>button{</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 10px 14px; border-radius: 10px; border: 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: #1f6feb; color: #fff; font-weight: 800; cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>button.secondary{ background: #111827; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>button.ghost{ background: #e5e7eb; color: #111; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>button:disabled{ opacity: .55; cursor: not-allowed; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.feedback{ margin-top: 12px; padding: 12px; border-radius: 10px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.ok{ background: #ecfdf5; border: 1px solid #10b98144; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.bad{ background: #fef2f2; border: 1px solid #ef444444; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.small{ font-size: .92rem; opacity: .88; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.muted{ opacity: .75; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>code.kbd { background: #111827; color: #fff; padding: 2px 6px; border-radius: 6px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid { display: grid; gap: 14px; grid-template-columns: 1fr; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>@media (min-width: 900px){ .grid { grid-template-columns: 1.25fr .75fr; } }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>table { width: 100%; border-collapse: collapse; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e5e7eb; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>th { font-size: .9rem; opacity: .9; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.tag { display:inline-block; font-size:.85rem; padding: 2px 8px; border-radius:999px; background:#f3f4f6; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.danger { background:#fee2e2; color:#111; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.success { background:#dcfce7; color:#111; }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="wrap"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;header&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;h1&gt;Binär-Quest 🧠⚡ (5. Schulstufe)&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="row" id="statusBar" style="display:none;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="pill"&gt;Name: &lt;span id="playerNameTop"&gt;—&lt;/span&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="pill"&gt;Frage: &lt;span id="qIndex"&gt;1&lt;/span&gt;/&lt;span id="qTotal"&gt;10&lt;/span&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="pill"&gt;Punkte: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/header&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="grid" style="margin-top:14px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;!-- LEFT --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="card" id="introCard"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="row" style="justify-content:space-between;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 style="margin:0;"&gt;Kurze Erklärung: Binärsystem&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="openTeacherBtn" class="ghost"&gt;Lehrermodus&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>Im &lt;strong&gt;Binärsystem&lt;/strong&gt; gibt es nur &lt;code class="kbd"&gt;0&lt;/code&gt; und &lt;code class="kbd"&gt;1&lt;/code&gt;.</p>
-<p class="p1"><span class="Apple-converted-space">            </span>Jede Stelle hat einen &lt;strong&gt;Stellenwert&lt;/strong&gt; (von rechts): 1, 2, 4, 8, 16, 32, 64, …</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="small"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>Eine &lt;code class="kbd"&gt;1&lt;/code&gt; bedeutet: „Diesen Stellenwert mitzählen“. Eine &lt;code class="kbd"&gt;0&lt;/code&gt; bedeutet: „Nicht mitzählen“.</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/p&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="card" style="box-shadow:none; border:1px solid #e5e7eb; margin-top:12px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;strong&gt;Beispiele (kommen NICHT im Quiz vor):&lt;/strong&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;ul style="margin:10px 0 0;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;li&gt;&lt;code class="kbd"&gt;6&lt;/code&gt; (dezimal) = &lt;code class="kbd"&gt;110&lt;/code&gt; (binär) → 4 + 2 = 6&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;li&gt;&lt;code class="kbd"&gt;12&lt;/code&gt; (dezimal) = &lt;code class="kbd"&gt;1100&lt;/code&gt; (binär) → 8 + 4 = 12&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;li&gt;&lt;code class="kbd"&gt;100000&lt;/code&gt; (binär) = &lt;code class="kbd"&gt;32&lt;/code&gt; (dezimal)&lt;/li&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/ul&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="small muted" style="margin:10px 0 0;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>Führende Nullen ändern den Wert nicht: &lt;code class="kbd"&gt;101&lt;/code&gt; = &lt;code class="kbd"&gt;00000101&lt;/code&gt;.</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="row" style="margin-top:14px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;label class="small"&gt;&lt;strong&gt;Name:&lt;/strong&gt;&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;input id="nameInput" type="text" maxlength="20" placeholder="z.B. Alex" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="startBtn"&gt;Spiel starten&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="small muted" style="margin-top:10px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>Punkte-Regel: Pro Frage gibt’s nur dann einen Punkt, wenn du sie &lt;strong&gt;beim 1. Versuch&lt;/strong&gt; richtig löst.</p>
-<p class="p1"><span class="Apple-converted-space">            </span>Nach einem Fehler darfst du weiter probieren, bekommst aber für diese Frage dann &lt;strong&gt;keinen Punkt mehr&lt;/strong&gt;.</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="card" id="teacherCard" style="display:none; margin-top:14px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="row" style="justify-content:space-between;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 style="margin:0;"&gt;Lehrermodus&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="closeTeacherBtn" class="ghost"&gt;Schließen&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="small muted" style="margin-top:8px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>Hier kannst du Fragen + Einstellungen anpassen. Änderungen werden im Browser gespeichert (dieses Gerät).</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/p&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div id="teacherLocked"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;input id="teacherPin" type="password" placeholder="PIN eingeben" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;button id="unlockTeacherBtn"&gt;Entsperren&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="small muted" style="margin-top:8px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>Tipp: PIN kannst du im Code oben ändern (&lt;code class="kbd"&gt;TEACHER_PIN&lt;/code&gt;).</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div id="teacherUnlocked" style="display:none;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="card" style="box-shadow:none; border:1px solid #e5e7eb;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;div class="row" style="justify-content:space-between;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;strong&gt;Einstellungen&lt;/strong&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span class="tag"&gt;JSON bearbeiten&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;p class="small muted" style="margin:8px 0 10px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>Wichtig: Ab Frage &lt;strong&gt;4&lt;/strong&gt; werden Hinweise automatisch ausgeblendet (einstellbar über &lt;code class="kbd"&gt;hintsUntilQuestion&lt;/code&gt;).</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;textarea id="teacherJson"&gt;&lt;/textarea&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;div class="row" style="margin-top:10px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;button id="saveTeacherBtn" class="secondary"&gt;Speichern&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;button id="resetTeacherBtn" class="ghost"&gt;Standard wiederherstellen&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;span id="teacherMsg" class="small muted"&gt;&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="card" id="gameCard" style="display:none; margin-top:14px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="question" id="questionText"&gt;…&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="hint" id="hintText"&gt;…&lt;/p&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;input id="answerInput" type="text" inputmode="numeric" autocomplete="off" placeholder="Antwort…" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="checkBtn"&gt;Prüfen&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="nextBtn" class="secondary" disabled&gt;Weiter ▶&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="restartBtn" class="ghost" title="Neustart"&gt;Neu starten&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div id="feedback" class="feedback" style="display:none;"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;p class="small muted" style="margin-top:12px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>Tipp: Bei Binärantworten nur 0/1 (ohne Leerzeichen). Führende Nullen sind erlaubt.</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="card" id="resultCard" style="display:none; margin-top:14px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;h2&gt;Ergebnis&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;p id="resultText" style="font-size:1.05rem; margin:0 0 12px;"&gt;&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div id="review"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="row" style="margin-top:12px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="playAgainBtn" class="secondary"&gt;Nochmal spielen&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;!-- RIGHT --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row" style="justify-content:space-between;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;h2 style="margin:0;"&gt;Highscore&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;span class="tag"&gt;gespeichert im Browser&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;p class="small muted" style="margin:8px 0 12px;"&gt;Top-10 auf diesem Gerät/Browser (LocalStorage).&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="highscoreBox" class="small muted"&gt;—&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row" style="margin-top:12px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;button id="clearScoresBtn" class="ghost"&gt;Highscore löschen&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;script&gt;</p>
-<p class="p1">(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 1) Lehr-PIN (hier ändern)</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const TEACHER_PIN = "1234";</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 2) Standard-Config</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const DEFAULT_CONFIG = {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// Hinweise werden bis inkl. Frage X angezeigt (ab X+1 verschwinden sie)</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// Für deinen Wunsch: ab Frage 4 keine Hinweise =&gt; hintsUntilQuestion = 3</p>
-<p class="p1"><span class="Apple-converted-space">    </span>hintsUntilQuestion: 3,</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// Fragenliste (aufsteigende Schwierigkeit)</p>
-<p class="p1"><span class="Apple-converted-space">    </span>questions: [</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "dec2bin", value: 5, <span class="Apple-converted-space">  </span>prompt: "Wandle 5 in Binär um.",<span class="Apple-converted-space">                    </span>hint: "Stellenwerte: 4,2,1" },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "dec2bin", value: 9, <span class="Apple-converted-space">  </span>prompt: "Wandle 9 in Binär um.",<span class="Apple-converted-space">                    </span>hint: "9 = 8 + 1" },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "dec2bin", value: 13,<span class="Apple-converted-space">  </span>prompt: "Wandle 13 in Binär um.", <span class="Apple-converted-space">                  </span>hint: "13 = 8 + 4 + 1" },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "dec2bin", value: 18,<span class="Apple-converted-space">  </span>prompt: "Wandle 18 in Binär um.", <span class="Apple-converted-space">                  </span>hint: "18 = 16 + 2" },</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "bin2dec", value: "1010", <span class="Apple-converted-space">    </span>prompt: "Wandle 1010 in Dezimal um.",<span class="Apple-converted-space">        </span>hint: "8 + 2" },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "bin2dec", value: "110011", <span class="Apple-converted-space">  </span>prompt: "Wandle 110011 in Dezimal um.",<span class="Apple-converted-space">      </span>hint: "32,16,8,4,2,1" },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "bin2dec", value: "1001110",<span class="Apple-converted-space">  </span>prompt: "Wandle 1001110 in Dezimal um.", <span class="Apple-converted-space">    </span>hint: "64,32,16,8,4,2,1" },</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "dec2bin", value: 42,<span class="Apple-converted-space">  </span>prompt: "Wandle 42 in Binär um.", <span class="Apple-converted-space">                  </span>hint: "42 = 32 + 8 + 2" },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "bin2dec", value: "11101001", prompt: "Wandle 11101001 in Dezimal um.",<span class="Apple-converted-space">    </span>hint: "128,64,32,16,8,4,2,1" },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ type: "dec2bin", value: 127, prompt: "Wandle 127 in Binär um.",<span class="Apple-converted-space">                  </span>hint: "1 weniger als 128." }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>]</p>
-<p class="p1"><span class="Apple-converted-space">  </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 3) Config Storage</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const CFG_KEY = "binaerquest_config_v1";</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const SCORE_KEY = "binaerquest_highscores_v1";</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function loadConfig() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>try {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const raw = localStorage.getItem(CFG_KEY);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const cfg = raw ? JSON.parse(raw) : null;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!cfg || !Array.isArray(cfg.questions)) return structuredClone(DEFAULT_CONFIG);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return cfg;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} catch {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return structuredClone(DEFAULT_CONFIG);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>let config = loadConfig();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let questions = config.questions;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 4) Highscore</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function loadScores() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>try {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const raw = localStorage.getItem(SCORE_KEY);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const arr = raw ? JSON.parse(raw) : [];</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return Array.isArray(arr) ? arr : [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} catch { return []; }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function saveScores(scores) { localStorage.setItem(SCORE_KEY, JSON.stringify(scores)); }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function addScore(name, score, total) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const scores = loadScores();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>scores.push({ name, score, total, ts: Date.now() });</p>
-<p class="p1"><span class="Apple-converted-space">    </span>scores.sort((a,b) =&gt; (b.score - a.score) || (a.ts - b.ts));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveScores(scores.slice(0, 10));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>renderHighscores();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function renderHighscores() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const box = document.getElementById("highscoreBox");</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const scores = loadScores();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!scores.length) { box.innerHTML = "&lt;span class='muted'&gt;Noch keine Einträge.&lt;/span&gt;"; return; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>box.innerHTML = `</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;table&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;thead&gt;&lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Punkte&lt;/th&gt;&lt;th&gt;Datum&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;tbody&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>${scores.map((s,i) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const d = new Date(s.ts);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const date = d.toLocaleDateString("de-AT", { year:"numeric", month:"2-digit", day:"2-digit" });</p>
-<p class="p1"><span class="Apple-converted-space">            </span>return `&lt;tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;td&gt;${i+1}.&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;td&gt;&lt;strong&gt;${escapeHtml(s.name)}&lt;/strong&gt;&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;td&gt;${s.score}/${s.total}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;td class="muted"&gt;${date}&lt;/td&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/tr&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}).join("")}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/tbody&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/table&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 5) Helpers</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const decToBin = (n) =&gt; n.toString(2);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const binToDec = (b) =&gt; parseInt(b, 2);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const normalizeBinary = (s) =&gt; s.replace(/\s+/g, "");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const normalizeNumber = (s) =&gt; s.trim();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const isValidBinary = (s) =&gt; /^[01]+$/.test(s);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const isValidDecimal = (s) =&gt; /^\d+$/.test(s);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// Für "101" == "00000101": wir vergleichen den WERT</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function isCorrectAnswer(q, raw) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (q.type === "dec2bin") {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const s = normalizeBinary(raw);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!isValidBinary(s)) return { valid:false };</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return { valid:true, ok: binToDec(s) === Number(q.value) };</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const s = normalizeNumber(raw);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!isValidDecimal(s)) return { valid:false };</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return { valid:true, ok: Number(s) === binToDec(String(q.value)) };</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function expectedDisplay(q) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>return (q.type === "dec2bin") ? decToBin(Number(q.value)) : String(binToDec(String(q.value)));</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function escapeHtml(s) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>return String(s).replace(/[&amp;&lt;&gt;"']/g, c =&gt; ({</p>
-<p class="p1"><span class="Apple-converted-space">      </span>"&amp;":"&amp;amp;","&lt;":"&amp;lt;","&gt;":"&amp;gt;",'"':"&amp;quot;","'":"&amp;#39;"</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}[c]));</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 6) State</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let idx = 0;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let score = 0;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let playerName = "";</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let firstTryStillPossible = true;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const history = []; // {prompt, correct, user, ok, tries, gotPoint}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 7) UI refs</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const statusBar = document.getElementById("statusBar");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const playerNameTop = document.getElementById("playerNameTop");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const qIndexEl = document.getElementById("qIndex");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const qTotalEl = document.getElementById("qTotal");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const scoreEl = document.getElementById("score");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const introCard = document.getElementById("introCard");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const teacherCard = document.getElementById("teacherCard");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const teacherLocked = document.getElementById("teacherLocked");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const teacherUnlocked = document.getElementById("teacherUnlocked");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const teacherJson = document.getElementById("teacherJson");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const teacherMsg = document.getElementById("teacherMsg");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const gameCard = document.getElementById("gameCard");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const resultCard = document.getElementById("resultCard");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const nameInput = document.getElementById("nameInput");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const startBtn = document.getElementById("startBtn");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const questionTextEl = document.getElementById("questionText");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const hintTextEl = document.getElementById("hintText");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const answerInput = document.getElementById("answerInput");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const checkBtn = document.getElementById("checkBtn");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const nextBtn = document.getElementById("nextBtn");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const restartBtn = document.getElementById("restartBtn");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const feedbackEl = document.getElementById("feedback");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const resultText = document.getElementById("resultText");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const reviewEl = document.getElementById("review");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const playAgainBtn = document.getElementById("playAgainBtn");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const openTeacherBtn = document.getElementById("openTeacherBtn");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const closeTeacherBtn = document.getElementById("closeTeacherBtn");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const teacherPin = document.getElementById("teacherPin");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const unlockTeacherBtn = document.getElementById("unlockTeacherBtn");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const saveTeacherBtn = document.getElementById("saveTeacherBtn");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const resetTeacherBtn = document.getElementById("resetTeacherBtn");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const clearScoresBtn = document.getElementById("clearScoresBtn");</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 8) Game functions</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function currentQuestion() { return questions[idx]; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function setFeedback(ok, msg) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>feedbackEl.style.display = "block";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>feedbackEl.className = "feedback " + (ok ? "ok" : "bad");</p>
-<p class="p1"><span class="Apple-converted-space">    </span>feedbackEl.innerHTML = msg;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function renderQuestion() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>qTotalEl.textContent = String(questions.length);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>qIndexEl.textContent = String(idx + 1);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>scoreEl.textContent = String(score);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const q = currentQuestion();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>questionTextEl.textContent = q.prompt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// HINWEISE: nur bis inkl. config.hintsUntilQuestion (z.B. 3). Ab Frage 4 -&gt; weg.</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const showHint = (idx + 1) &lt;= Number(config.hintsUntilQuestion);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (showHint &amp;&amp; q.hint) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>hintTextEl.style.display = "block";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>hintTextEl.textContent = "Hinweis: " + q.hint;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>hintTextEl.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>hintTextEl.textContent = "";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>feedbackEl.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>answerInput.value = "";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>answerInput.focus();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>nextBtn.disabled = true;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>checkBtn.disabled = false;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>firstTryStillPossible = true;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>answerInput.placeholder = (q.type === "dec2bin")</p>
-<p class="p1"><span class="Apple-converted-space">      </span>? "Binär (z.B. 101 oder 00000101)…"</p>
-<p class="p1"><span class="Apple-converted-space">      </span>: "Dezimal (z.B. 10)…";</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function finishGame() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>addScore(playerName, score, questions.length);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>gameCard.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>resultCard.style.display = "block";</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const percent = Math.round((score / questions.length) * 100);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>resultText.textContent = `${playerName}: ${score}/${questions.length} Punkte (${percent}%).`;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>reviewEl.innerHTML = history.map((h, i) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const icon = h.ok ? "✅" : "❌";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const pointTxt = h.gotPoint ? " (+1 Punkt)" : " (0 Punkte)";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return `&lt;div style="margin:6px 0; padding:10px; border-radius:10px; background:#f3f4f6;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;strong&gt;${icon} Frage ${i+1}:&lt;/strong&gt; ${escapeHtml(h.prompt)}&lt;br/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;span class="small"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>Versuche: &lt;strong&gt;${h.tries}&lt;/strong&gt;${pointTxt}&lt;br/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>Deine letzte Antwort: &lt;code class="kbd"&gt;${escapeHtml(h.user)}&lt;/code&gt; — Richtig (eine mögliche Schreibweise): &lt;code class="kbd"&gt;${escapeHtml(h.correct)}&lt;/code&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}).join("");</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function checkAnswer() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const q = currentQuestion();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const raw = answerInput.value;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!history[idx]) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>history[idx] = { prompt: q.prompt, correct: expectedDisplay(q), user: "", ok: false, tries: 0, gotPoint: false };</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const h = history[idx];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>h.tries += 1;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const res = isCorrectAnswer(q, raw);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!res.valid) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>setFeedback(false, `⚠️ Bitte gültig eingeben. ${</p>
-<p class="p1"><span class="Apple-converted-space">        </span>q.type === "dec2bin" ? "Binär: nur 0 und 1." : "Dezimal: nur Ziffern."</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>h.user = (q.type === "dec2bin") ? normalizeBinary(raw) : normalizeNumber(raw);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (res.ok) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>h.ok = true;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (firstTryStillPossible) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>score += 1;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>h.gotPoint = true;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>setFeedback(true, `✅ Richtig! &lt;strong&gt;+1 Punkt&lt;/strong&gt;. (z.B. &lt;code class="kbd"&gt;${expectedDisplay(q)}&lt;/code&gt;)`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>h.gotPoint = false;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>setFeedback(true, `✅ Richtig! (Nach einem Fehler gibt es für diese Frage keine Punkte mehr.)`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">      </span>scoreEl.textContent = String(score);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>checkBtn.disabled = true;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>nextBtn.disabled = false;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>firstTryStillPossible = false;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>h.ok = false;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>setFeedback(false, `❌ Noch nicht. Versuch es nochmal! (Für diese Frage sind jetzt &lt;strong&gt;keine Punkte&lt;/strong&gt; mehr möglich.)`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>answerInput.focus();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>answerInput.select();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>nextBtn.disabled = true;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function nextQuestion() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (idx &lt; questions.length - 1) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>idx += 1;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>renderQuestion();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>finishGame();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function startGame() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>playerName = nameInput.value.trim() || "Unbekannt";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>playerNameTop.textContent = playerName;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>introCard.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherCard.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>resultCard.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>gameCard.style.display = "block";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>statusBar.style.display = "flex";</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// Reload config (falls Lehrermodus gerade gespeichert hat)</p>
-<p class="p1"><span class="Apple-converted-space">    </span>config = loadConfig();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>questions = config.questions;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>idx = 0; score = 0; history.length = 0;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>renderQuestion();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function restartToIntro() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>statusBar.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>introCard.style.display = "block";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>gameCard.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>resultCard.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 9) Lehrermodus functions</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>function openTeacher() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherCard.style.display = "block";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherLocked.style.display = "block";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherUnlocked.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherPin.value = "";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherMsg.textContent = "";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherJson.value = "";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherPin.focus();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function closeTeacher() { teacherCard.style.display = "none"; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function unlockTeacher() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (teacherPin.value !== TEACHER_PIN) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>teacherMsg.textContent = "❌ Falsche PIN.";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>teacherMsg.className = "small danger";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherMsg.textContent = "✅ Entsperrt.";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherMsg.className = "small success";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherLocked.style.display = "none";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherUnlocked.style.display = "block";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherJson.value = JSON.stringify(loadConfig(), null, 2);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function validateConfig(cfg) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!cfg || typeof cfg !== "object") return "Config ist kein Objekt.";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!Number.isInteger(cfg.hintsUntilQuestion) || cfg.hintsUntilQuestion &lt; 0) return "hintsUntilQuestion muss eine Zahl (&gt;=0) sein.";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!Array.isArray(cfg.questions) || cfg.questions.length &lt; 1) return "questions muss ein Array mit mind. 1 Frage sein.";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>for (const [i,q] of cfg.questions.entries()) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!q || typeof q !== "object") return `Frage ${i+1} ist kein Objekt.`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!["dec2bin","bin2dec"].includes(q.type)) return `Frage ${i+1}: type muss "dec2bin" oder "bin2dec" sein.`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (typeof q.prompt !== "string" || !q.prompt.trim()) return `Frage ${i+1}: prompt fehlt.`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (q.type === "dec2bin") {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (typeof q.value !== "number" || !Number.isInteger(q.value) || q.value &lt; 0) return `Frage ${i+1}: value muss eine ganze Zahl (&gt;=0) sein.`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const v = String(q.value);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (!/^[01]+$/.test(v)) return `Frage ${i+1}: value muss eine Binärzahl (nur 0/1) sein.`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (q.hint != null &amp;&amp; typeof q.hint !== "string") return `Frage ${i+1}: hint muss Text sein (oder weglassen).`;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>return null;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function saveTeacher() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let cfg;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>try {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cfg = JSON.parse(teacherJson.value);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} catch {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>teacherMsg.textContent = "❌ JSON ist ungültig.";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>teacherMsg.className = "small danger";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const err = validateConfig(cfg);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (err) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>teacherMsg.textContent = "❌ " + err;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>teacherMsg.className = "small danger";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveConfig(cfg);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>config = cfg;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>questions = cfg.questions;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherMsg.textContent = "✅ Gespeichert.";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherMsg.className = "small success";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>qTotalEl.textContent = String(questions.length);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function resetTeacher() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveConfig(structuredClone(DEFAULT_CONFIG));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherJson.value = JSON.stringify(loadConfig(), null, 2);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherMsg.textContent = "✅ Standard wiederhergestellt.";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>teacherMsg.className = "small success";</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// 10) Events</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// ===========================</p>
-<p class="p1"><span class="Apple-converted-space">  </span>startBtn.addEventListener("click", startGame);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>nameInput.addEventListener("keydown", (e) =&gt; { if (e.key === "Enter") startGame(); });</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>checkBtn.addEventListener("click", checkAnswer);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>nextBtn.addEventListener("click", nextQuestion);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>restartBtn.addEventListener("click", restartToIntro);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>playAgainBtn.addEventListener("click", restartToIntro);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>answerInput.addEventListener("keydown", (e) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (e.key === "Enter" &amp;&amp; !checkBtn.disabled) checkAnswer();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>else if (e.key === "Enter" &amp;&amp; !nextBtn.disabled) nextQuestion();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>openTeacherBtn.addEventListener("click", openTeacher);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>closeTeacherBtn.addEventListener("click", closeTeacher);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>unlockTeacherBtn.addEventListener("click", unlockTeacher);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>teacherPin.addEventListener("keydown", (e) =&gt; { if (e.key === "Enter") unlockTeacher(); });</p>
-<p class="p1"><span class="Apple-converted-space">  </span>saveTeacherBtn.addEventListener("click", saveTeacher);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>resetTeacherBtn.addEventListener("click", resetTeacher);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>clearScoresBtn.addEventListener("click", () =&gt; { localStorage.removeItem(SCORE_KEY); renderHighscores(); });</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// Init</p>
-<p class="p1"><span class="Apple-converted-space">  </span>renderHighscores();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>qTotalEl.textContent = String(questions.length);</p>
-<p class="p1">})();</p>
-<p class="p1">&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+  <div class="wrap">
+    <header>
+      <h1>Binär-Quest 🧠⚡ (5. Schulstufe)</h1>
+      <div class="row" id="statusBar" style="display:none;">
+        <div class="pill">Name: <span id="playerNameTop">—</span></div>
+        <div class="pill">Frage: <span id="qIndex">1</span>/<span id="qTotal">10</span></div>
+        <div class="pill">Punkte: <span id="score">0</span></div>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:14px;">
+      <!-- LEFT -->
+      <div>
+        <div class="card" id="introCard">
+          <div class="row" style="justify-content:space-between;">
+            <h2 style="margin:0;">Kurze Erklärung: Binärsystem</h2>
+            <button id="openTeacherBtn" class="ghost">Lehrermodus</button>
+          </div>
+
+          <p>
+            Im <strong>Binärsystem</strong> gibt es nur <code class="kbd">0</code> und <code class="kbd">1</code>.
+            Jede Stelle hat einen <strong>Stellenwert</strong> (von rechts): 1, 2, 4, 8, 16, 32, 64, …
+          </p>
+          <p class="small">
+            Eine <code class="kbd">1</code> bedeutet: „Diesen Stellenwert mitzählen“. Eine <code class="kbd">0</code> bedeutet: „Nicht mitzählen“.
+          </p>
+
+          <div class="card" style="box-shadow:none; border:1px solid #e5e7eb; margin-top:12px;">
+            <strong>Beispiele (kommen NICHT im Quiz vor):</strong>
+            <ul style="margin:10px 0 0;">
+              <li><code class="kbd">6</code> (dezimal) = <code class="kbd">110</code> (binär) → 4 + 2 = 6</li>
+              <li><code class="kbd">12</code> (dezimal) = <code class="kbd">1100</code> (binär) → 8 + 4 = 12</li>
+              <li><code class="kbd">100000</code> (binär) = <code class="kbd">32</code> (dezimal)</li>
+            </ul>
+            <p class="small muted" style="margin:10px 0 0;">
+              Führende Nullen ändern den Wert nicht: <code class="kbd">101</code> = <code class="kbd">00000101</code>.
+            </p>
+          </div>
+
+          <div class="row" style="margin-top:14px;">
+            <label class="small"><strong>Name:</strong></label>
+            <input id="nameInput" type="text" maxlength="20" placeholder="z.B. Alex" />
+            <button id="startBtn">Spiel starten</button>
+          </div>
+
+          <p class="small muted" style="margin-top:10px;">
+            Punkte-Regel: Pro Frage gibt’s nur dann einen Punkt, wenn du sie <strong>beim 1. Versuch</strong> richtig löst.
+            Nach einem Fehler darfst du weiter probieren, bekommst aber für diese Frage dann <strong>keinen Punkt mehr</strong>.
+          </p>
+        </div>
+
+        <div class="card" id="teacherCard" style="display:none; margin-top:14px;">
+          <div class="row" style="justify-content:space-between;">
+            <h2 style="margin:0;">Lehrermodus</h2>
+            <button id="closeTeacherBtn" class="ghost">Schließen</button>
+          </div>
+
+          <p class="small muted" style="margin-top:8px;">
+            Hier kannst du Fragen + Einstellungen anpassen. Änderungen werden im Browser gespeichert (dieses Gerät).
+          </p>
+
+          <div id="teacherLocked">
+            <div class="row">
+              <input id="teacherPin" type="password" placeholder="PIN eingeben" />
+              <button id="unlockTeacherBtn">Entsperren</button>
+            </div>
+            <p class="small muted" style="margin-top:8px;">
+              Tipp: PIN kannst du im Code oben ändern (<code class="kbd">TEACHER_PIN</code>).
+            </p>
+          </div>
+
+          <div id="teacherUnlocked" style="display:none;">
+            <div class="card" style="box-shadow:none; border:1px solid #e5e7eb;">
+              <div class="row" style="justify-content:space-between;">
+                <strong>Einstellungen</strong>
+                <span class="tag">JSON bearbeiten</span>
+              </div>
+              <p class="small muted" style="margin:8px 0 10px;">
+                Wichtig: Ab Frage <strong>4</strong> werden Hinweise automatisch ausgeblendet (einstellbar über <code class="kbd">hintsUntilQuestion</code>).
+              </p>
+              <textarea id="teacherJson"></textarea>
+              <div class="row" style="margin-top:10px;">
+                <button id="saveTeacherBtn" class="secondary">Speichern</button>
+                <button id="resetTeacherBtn" class="ghost">Standard wiederherstellen</button>
+                <span id="teacherMsg" class="small muted"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="gameCard" style="display:none; margin-top:14px;">
+          <div class="question" id="questionText">…</div>
+          <p class="hint" id="hintText">…</p>
+
+          <div class="row">
+            <input id="answerInput" type="text" inputmode="numeric" autocomplete="off" placeholder="Antwort…" />
+            <button id="checkBtn">Prüfen</button>
+            <button id="nextBtn" class="secondary" disabled>Weiter ▶</button>
+            <button id="restartBtn" class="ghost" title="Neustart">Neu starten</button>
+          </div>
+
+          <div id="feedback" class="feedback" style="display:none;"></div>
+          <p class="small muted" style="margin-top:12px;">
+            Tipp: Bei Binärantworten nur 0/1 (ohne Leerzeichen). Führende Nullen sind erlaubt.
+          </p>
+        </div>
+
+        <div class="card" id="resultCard" style="display:none; margin-top:14px;">
+          <h2>Ergebnis</h2>
+          <p id="resultText" style="font-size:1.05rem; margin:0 0 12px;"></p>
+          <div id="review"></div>
+          <div class="row" style="margin-top:12px;">
+            <button id="playAgainBtn" class="secondary">Nochmal spielen</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <h2 style="margin:0;">Highscore</h2>
+          <span class="tag">gespeichert im Browser</span>
+        </div>
+        <p class="small muted" style="margin:8px 0 12px;">Top-10 auf diesem Gerät/Browser (LocalStorage).</p>
+        <div id="highscoreBox" class="small muted">—</div>
+        <div class="row" style="margin-top:12px;">
+          <button id="clearScoresBtn" class="ghost">Highscore löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ===========================
+  // 1) Lehr-PIN (hier ändern)
+  // ===========================
+  const TEACHER_PIN = "1234";
+
+  // ===========================
+  // 2) Standard-Config
+  // ===========================
+  const DEFAULT_CONFIG = {
+    // Hinweise werden bis inkl. Frage X angezeigt (ab X+1 verschwinden sie)
+    // Für deinen Wunsch: ab Frage 4 keine Hinweise => hintsUntilQuestion = 3
+    hintsUntilQuestion: 3,
+
+    // Fragenliste (aufsteigende Schwierigkeit)
+    questions: [
+      { type: "dec2bin", value: 5,   prompt: "Wandle 5 in Binär um.",                    hint: "Stellenwerte: 4,2,1" },
+      { type: "dec2bin", value: 9,   prompt: "Wandle 9 in Binär um.",                    hint: "9 = 8 + 1" },
+      { type: "dec2bin", value: 13,  prompt: "Wandle 13 in Binär um.",                   hint: "13 = 8 + 4 + 1" },
+      { type: "dec2bin", value: 18,  prompt: "Wandle 18 in Binär um.",                   hint: "18 = 16 + 2" },
+
+      { type: "bin2dec", value: "1010",     prompt: "Wandle 1010 in Dezimal um.",        hint: "8 + 2" },
+      { type: "bin2dec", value: "110011",   prompt: "Wandle 110011 in Dezimal um.",      hint: "32,16,8,4,2,1" },
+      { type: "bin2dec", value: "1001110",  prompt: "Wandle 1001110 in Dezimal um.",     hint: "64,32,16,8,4,2,1" },
+
+      { type: "dec2bin", value: 42,  prompt: "Wandle 42 in Binär um.",                   hint: "42 = 32 + 8 + 2" },
+      { type: "bin2dec", value: "11101001", prompt: "Wandle 11101001 in Dezimal um.",    hint: "128,64,32,16,8,4,2,1" },
+      { type: "dec2bin", value: 127, prompt: "Wandle 127 in Binär um.",                  hint: "1 weniger als 128." }
+    ]
+  };
+
+  // ===========================
+  // 3) Config Storage
+  // ===========================
+  const CFG_KEY = "binaerquest_config_v1";
+  const SCORE_KEY = "binaerquest_highscores_v1";
+
+  function loadConfig() {
+    try {
+      const raw = localStorage.getItem(CFG_KEY);
+      const cfg = raw ? JSON.parse(raw) : null;
+      if (!cfg || !Array.isArray(cfg.questions)) return structuredClone(DEFAULT_CONFIG);
+      return cfg;
+    } catch {
+      return structuredClone(DEFAULT_CONFIG);
+    }
+  }
+  function saveConfig(cfg) { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
+
+  let config = loadConfig();
+  let questions = config.questions;
+
+  // ===========================
+  // 4) Highscore
+  // ===========================
+  function loadScores() {
+    try {
+      const raw = localStorage.getItem(SCORE_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+  function saveScores(scores) { localStorage.setItem(SCORE_KEY, JSON.stringify(scores)); }
+  function addScore(name, score, total) {
+    const scores = loadScores();
+    scores.push({ name, score, total, ts: Date.now() });
+    scores.sort((a,b) => (b.score - a.score) || (a.ts - b.ts));
+    saveScores(scores.slice(0, 10));
+    renderHighscores();
+  }
+  function renderHighscores() {
+    const box = document.getElementById("highscoreBox");
+    const scores = loadScores();
+    if (!scores.length) { box.innerHTML = "<span class='muted'>Noch keine Einträge.</span>"; return; }
+    box.innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Punkte</th><th>Datum</th></tr></thead>
+        <tbody>
+          ${scores.map((s,i) => {
+            const d = new Date(s.ts);
+            const date = d.toLocaleDateString("de-AT", { year:"numeric", month:"2-digit", day:"2-digit" });
+            return `<tr>
+              <td>${i+1}.</td>
+              <td><strong>${escapeHtml(s.name)}</strong></td>
+              <td>${s.score}/${s.total}</td>
+              <td class="muted">${date}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  // ===========================
+  // 5) Helpers
+  // ===========================
+  const decToBin = (n) => n.toString(2);
+  const binToDec = (b) => parseInt(b, 2);
+  const normalizeBinary = (s) => s.replace(/\s+/g, "");
+  const normalizeNumber = (s) => s.trim();
+  const isValidBinary = (s) => /^[01]+$/.test(s);
+  const isValidDecimal = (s) => /^\d+$/.test(s);
+
+  // Für "101" == "00000101": wir vergleichen den WERT
+  function isCorrectAnswer(q, raw) {
+    if (q.type === "dec2bin") {
+      const s = normalizeBinary(raw);
+      if (!isValidBinary(s)) return { valid:false };
+      return { valid:true, ok: binToDec(s) === Number(q.value) };
+    } else {
+      const s = normalizeNumber(raw);
+      if (!isValidDecimal(s)) return { valid:false };
+      return { valid:true, ok: Number(s) === binToDec(String(q.value)) };
+    }
+  }
+  function expectedDisplay(q) {
+    return (q.type === "dec2bin") ? decToBin(Number(q.value)) : String(binToDec(String(q.value)));
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  // ===========================
+  // 6) State
+  // ===========================
+  let idx = 0;
+  let score = 0;
+  let playerName = "";
+  let firstTryStillPossible = true;
+  const history = []; // {prompt, correct, user, ok, tries, gotPoint}
+
+  // ===========================
+  // 7) UI refs
+  // ===========================
+  const statusBar = document.getElementById("statusBar");
+  const playerNameTop = document.getElementById("playerNameTop");
+  const qIndexEl = document.getElementById("qIndex");
+  const qTotalEl = document.getElementById("qTotal");
+  const scoreEl = document.getElementById("score");
+
+  const introCard = document.getElementById("introCard");
+  const teacherCard = document.getElementById("teacherCard");
+  const teacherLocked = document.getElementById("teacherLocked");
+  const teacherUnlocked = document.getElementById("teacherUnlocked");
+  const teacherJson = document.getElementById("teacherJson");
+  const teacherMsg = document.getElementById("teacherMsg");
+
+  const gameCard = document.getElementById("gameCard");
+  const resultCard = document.getElementById("resultCard");
+
+  const nameInput = document.getElementById("nameInput");
+  const startBtn = document.getElementById("startBtn");
+
+  const questionTextEl = document.getElementById("questionText");
+  const hintTextEl = document.getElementById("hintText");
+  const answerInput = document.getElementById("answerInput");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const feedbackEl = document.getElementById("feedback");
+
+  const resultText = document.getElementById("resultText");
+  const reviewEl = document.getElementById("review");
+  const playAgainBtn = document.getElementById("playAgainBtn");
+
+  const openTeacherBtn = document.getElementById("openTeacherBtn");
+  const closeTeacherBtn = document.getElementById("closeTeacherBtn");
+  const teacherPin = document.getElementById("teacherPin");
+  const unlockTeacherBtn = document.getElementById("unlockTeacherBtn");
+  const saveTeacherBtn = document.getElementById("saveTeacherBtn");
+  const resetTeacherBtn = document.getElementById("resetTeacherBtn");
+
+  const clearScoresBtn = document.getElementById("clearScoresBtn");
+
+  // ===========================
+  // 8) Game functions
+  // ===========================
+  function currentQuestion() { return questions[idx]; }
+
+  function setFeedback(ok, msg) {
+    feedbackEl.style.display = "block";
+    feedbackEl.className = "feedback " + (ok ? "ok" : "bad");
+    feedbackEl.innerHTML = msg;
+  }
+
+  function renderQuestion() {
+    qTotalEl.textContent = String(questions.length);
+    qIndexEl.textContent = String(idx + 1);
+    scoreEl.textContent = String(score);
+
+    const q = currentQuestion();
+    questionTextEl.textContent = q.prompt;
+
+    // HINWEISE: nur bis inkl. config.hintsUntilQuestion (z.B. 3). Ab Frage 4 -> weg.
+    const showHint = (idx + 1) <= Number(config.hintsUntilQuestion);
+    if (showHint && q.hint) {
+      hintTextEl.style.display = "block";
+      hintTextEl.textContent = "Hinweis: " + q.hint;
+    } else {
+      hintTextEl.style.display = "none";
+      hintTextEl.textContent = "";
+    }
+
+    feedbackEl.style.display = "none";
+    answerInput.value = "";
+    answerInput.focus();
+
+    nextBtn.disabled = true;
+    checkBtn.disabled = false;
+
+    firstTryStillPossible = true;
+
+    answerInput.placeholder = (q.type === "dec2bin")
+      ? "Binär (z.B. 101 oder 00000101)…"
+      : "Dezimal (z.B. 10)…";
+  }
+
+  function finishGame() {
+    addScore(playerName, score, questions.length);
+
+    gameCard.style.display = "none";
+    resultCard.style.display = "block";
+
+    const percent = Math.round((score / questions.length) * 100);
+    resultText.textContent = `${playerName}: ${score}/${questions.length} Punkte (${percent}%).`;
+
+    reviewEl.innerHTML = history.map((h, i) => {
+      const icon = h.ok ? "✅" : "❌";
+      const pointTxt = h.gotPoint ? " (+1 Punkt)" : " (0 Punkte)";
+      return `<div style="margin:6px 0; padding:10px; border-radius:10px; background:#f3f4f6;">
+        <strong>${icon} Frage ${i+1}:</strong> ${escapeHtml(h.prompt)}<br/>
+        <span class="small">
+          Versuche: <strong>${h.tries}</strong>${pointTxt}<br/>
+          Deine letzte Antwort: <code class="kbd">${escapeHtml(h.user)}</code> — Richtig (eine mögliche Schreibweise): <code class="kbd">${escapeHtml(h.correct)}</code>
+        </span>
+      </div>`;
+    }).join("");
+  }
+
+  function checkAnswer() {
+    const q = currentQuestion();
+    const raw = answerInput.value;
+
+    if (!history[idx]) {
+      history[idx] = { prompt: q.prompt, correct: expectedDisplay(q), user: "", ok: false, tries: 0, gotPoint: false };
+    }
+    const h = history[idx];
+    h.tries += 1;
+
+    const res = isCorrectAnswer(q, raw);
+    if (!res.valid) {
+      setFeedback(false, `⚠️ Bitte gültig eingeben. ${
+        q.type === "dec2bin" ? "Binär: nur 0 und 1." : "Dezimal: nur Ziffern."
+      }`);
+      return;
+    }
+
+    h.user = (q.type === "dec2bin") ? normalizeBinary(raw) : normalizeNumber(raw);
+
+    if (res.ok) {
+      h.ok = true;
+      if (firstTryStillPossible) {
+        score += 1;
+        h.gotPoint = true;
+        setFeedback(true, `✅ Richtig! <strong>+1 Punkt</strong>. (z.B. <code class="kbd">${expectedDisplay(q)}</code>)`);
+      } else {
+        h.gotPoint = false;
+        setFeedback(true, `✅ Richtig! (Nach einem Fehler gibt es für diese Frage keine Punkte mehr.)`);
+      }
+      scoreEl.textContent = String(score);
+      checkBtn.disabled = true;
+      nextBtn.disabled = false;
+    } else {
+      firstTryStillPossible = false;
+      h.ok = false;
+      setFeedback(false, `❌ Noch nicht. Versuch es nochmal! (Für diese Frage sind jetzt <strong>keine Punkte</strong> mehr möglich.)`);
+      answerInput.focus();
+      answerInput.select();
+      nextBtn.disabled = true;
+    }
+  }
+
+  function nextQuestion() {
+    if (idx < questions.length - 1) {
+      idx += 1;
+      renderQuestion();
+    } else {
+      finishGame();
+    }
+  }
+
+  function startGame() {
+    playerName = nameInput.value.trim() || "Unbekannt";
+    playerNameTop.textContent = playerName;
+
+    introCard.style.display = "none";
+    teacherCard.style.display = "none";
+    resultCard.style.display = "none";
+    gameCard.style.display = "block";
+    statusBar.style.display = "flex";
+
+    // Reload config (falls Lehrermodus gerade gespeichert hat)
+    config = loadConfig();
+    questions = config.questions;
+
+    idx = 0; score = 0; history.length = 0;
+    renderQuestion();
+  }
+
+  function restartToIntro() {
+    statusBar.style.display = "none";
+    introCard.style.display = "block";
+    gameCard.style.display = "none";
+    resultCard.style.display = "none";
+  }
+
+  // ===========================
+  // 9) Lehrermodus functions
+  // ===========================
+  function openTeacher() {
+    teacherCard.style.display = "block";
+    teacherLocked.style.display = "block";
+    teacherUnlocked.style.display = "none";
+    teacherPin.value = "";
+    teacherMsg.textContent = "";
+    teacherJson.value = "";
+    teacherPin.focus();
+  }
+
+  function closeTeacher() { teacherCard.style.display = "none"; }
+
+  function unlockTeacher() {
+    if (teacherPin.value !== TEACHER_PIN) {
+      teacherMsg.textContent = "❌ Falsche PIN.";
+      teacherMsg.className = "small danger";
+      return;
+    }
+    teacherMsg.textContent = "✅ Entsperrt.";
+    teacherMsg.className = "small success";
+    teacherLocked.style.display = "none";
+    teacherUnlocked.style.display = "block";
+    teacherJson.value = JSON.stringify(loadConfig(), null, 2);
+  }
+
+  function validateConfig(cfg) {
+    if (!cfg || typeof cfg !== "object") return "Config ist kein Objekt.";
+    if (!Number.isInteger(cfg.hintsUntilQuestion) || cfg.hintsUntilQuestion < 0) return "hintsUntilQuestion muss eine Zahl (>=0) sein.";
+    if (!Array.isArray(cfg.questions) || cfg.questions.length < 1) return "questions muss ein Array mit mind. 1 Frage sein.";
+    for (const [i,q] of cfg.questions.entries()) {
+      if (!q || typeof q !== "object") return `Frage ${i+1} ist kein Objekt.`;
+      if (!["dec2bin","bin2dec"].includes(q.type)) return `Frage ${i+1}: type muss "dec2bin" oder "bin2dec" sein.`;
+      if (typeof q.prompt !== "string" || !q.prompt.trim()) return `Frage ${i+1}: prompt fehlt.`;
+      if (q.type === "dec2bin") {
+        if (typeof q.value !== "number" || !Number.isInteger(q.value) || q.value < 0) return `Frage ${i+1}: value muss eine ganze Zahl (>=0) sein.`;
+      } else {
+        const v = String(q.value);
+        if (!/^[01]+$/.test(v)) return `Frage ${i+1}: value muss eine Binärzahl (nur 0/1) sein.`;
+      }
+      if (q.hint != null && typeof q.hint !== "string") return `Frage ${i+1}: hint muss Text sein (oder weglassen).`;
+    }
+    return null;
+  }
+
+  function saveTeacher() {
+    let cfg;
+    try {
+      cfg = JSON.parse(teacherJson.value);
+    } catch {
+      teacherMsg.textContent = "❌ JSON ist ungültig.";
+      teacherMsg.className = "small danger";
+      return;
+    }
+    const err = validateConfig(cfg);
+    if (err) {
+      teacherMsg.textContent = "❌ " + err;
+      teacherMsg.className = "small danger";
+      return;
+    }
+    saveConfig(cfg);
+    config = cfg;
+    questions = cfg.questions;
+    teacherMsg.textContent = "✅ Gespeichert.";
+    teacherMsg.className = "small success";
+    qTotalEl.textContent = String(questions.length);
+  }
+
+  function resetTeacher() {
+    saveConfig(structuredClone(DEFAULT_CONFIG));
+    teacherJson.value = JSON.stringify(loadConfig(), null, 2);
+    teacherMsg.textContent = "✅ Standard wiederhergestellt.";
+    teacherMsg.className = "small success";
+  }
+
+  // ===========================
+  // 10) Events
+  // ===========================
+  startBtn.addEventListener("click", startGame);
+  nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startGame(); });
+
+  checkBtn.addEventListener("click", checkAnswer);
+  nextBtn.addEventListener("click", nextQuestion);
+
+  restartBtn.addEventListener("click", restartToIntro);
+  playAgainBtn.addEventListener("click", restartToIntro);
+
+  answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !checkBtn.disabled) checkAnswer();
+    else if (e.key === "Enter" && !nextBtn.disabled) nextQuestion();
+  });
+
+  openTeacherBtn.addEventListener("click", openTeacher);
+  closeTeacherBtn.addEventListener("click", closeTeacher);
+  unlockTeacherBtn.addEventListener("click", unlockTeacher);
+  teacherPin.addEventListener("keydown", (e) => { if (e.key === "Enter") unlockTeacher(); });
+  saveTeacherBtn.addEventListener("click", saveTeacher);
+  resetTeacherBtn.addEventListener("click", resetTeacher);
+
+  clearScoresBtn.addEventListener("click", () => { localStorage.removeItem(SCORE_KEY); renderHighscores(); });
+
+  // Init
+  renderHighscores();
+  qTotalEl.textContent = String(questions.length);
+})();
+</script>
 </body>
 </html>
