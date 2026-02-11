@@ -221,4 +221,153 @@
       // Schüler laden (oder cached)
       let students = studentsByClass.get(classId);
       if (!students) {
-        const { data } = a
+        const { data } = await supabase.from("students").select("id,display_name").eq("class_id", classId);
+        students = data || [];
+      }
+
+      if (!students.length) {
+        $("resultsBox").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`;
+        return;
+      }
+
+      const studentIds = students.map(s => s.id);
+
+      // Attempts der Klasse laden (nur Mathe, daher mode small/big)
+      const { data: attempts, error } = await supabase
+        .from("attempts")
+        .select("student_id,mode,correct_count,created_at")
+        .in("student_id", studentIds)
+        .order("created_at", { ascending:false });
+
+      if (error) { $("resultsBox").innerHTML = `<div class="bad">Fehler: ${error.message}</div>`; return; }
+
+      const byStudent = new Map();
+      for (const s of students) byStudent.set(s.id, []);
+      for (const a of (attempts || [])) byStudent.get(a.student_id)?.push(a);
+
+      // Bestwerte
+      const rows = students.map(s => {
+        const list = byStudent.get(s.id) || [];
+        const best = list.reduce((m, x) => Math.max(m, x.correct_count), 0);
+        const last5 = list.slice(0,5);
+        const avg5 = last5.length ? Math.round(last5.reduce((sum,x)=>sum+x.correct_count,0)/last5.length) : 0;
+        return { name: s.display_name, best, avg5, n: list.length };
+      }).sort((a,b)=> b.best - a.best || b.avg5 - a.avg5);
+
+      $("resultsBox").innerHTML = `
+        <table>
+          <thead><tr><th>Schüler</th><th>Bestwert</th><th>Ø letzte 5</th><th>Versuche</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `<tr>
+              <td><strong>${escapeHtml(r.name)}</strong></td>
+              <td>${r.best}</td>
+              <td class="muted">${r.avg5}</td>
+              <td class="muted">${r.n}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+        <div class="muted" style="margin-top:10px;">
+          Tipp: Wenn du später mehr Statistik willst (z.B. welche Reihen Probleme machen), speichern wir pro Aufgabe Details.
+        </div>
+      `;
+    }
+
+    $("loginBtn").addEventListener("click", async () => {
+      loginMsg.textContent = "";
+      const email = $("email").value.trim();
+      const password = $("pass").value.trim();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) msg(loginMsg, false, `Login fehlgeschlagen: ${error.message}`);
+      else msg(loginMsg, true, "✅ Eingeloggt.");
+      await ensureUI();
+    });
+
+    $("logoutBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      await ensureUI();
+    });
+
+    $("refreshBtn").addEventListener("click", async () => {
+      await loadClasses();
+      await loadStudentsForSelectedClass();
+      await loadResultsForSelectedClass();
+    });
+
+    $("createClassBtn").addEventListener("click", async () => {
+      classMsg.textContent = "";
+      const name = $("className").value.trim();
+      if (!name) { msg(classMsg, false, "Bitte Klassenname eingeben."); return; }
+      if (!teacher?.id) { msg(classMsg, false, "Teacher-Profil fehlt. Admin muss dich anlegen."); return; }
+
+      const { error } = await supabase.from("classes").insert({ teacher_id: teacher.id, name });
+      if (error) msg(classMsg, false, `Fehler: ${error.message}`);
+      else msg(classMsg, true, "✅ Klasse angelegt.");
+      $("className").value = "";
+      await loadClasses();
+      await loadStudentsForSelectedClass();
+      await loadResultsForSelectedClass();
+    });
+
+    $("createStudentBtn").addEventListener("click", async () => {
+      studentMsg.textContent = "";
+      const classId = classSelect.value;
+      const display_name = $("studentName").value.trim();
+      if (!classId) { msg(studentMsg, false, "Bitte Klasse wählen."); return; }
+      if (!display_name) { msg(studentMsg, false, "Bitte Schülername/Kürzel eingeben."); return; }
+
+      // Code sicherheitshalber unique versuchen
+      let code = randCode(5);
+      for (let i=0;i<5;i++){
+        const { data: existing } = await supabase.from("students").select("id").eq("login_code", code).maybeSingle();
+        if (!existing) break;
+        code = randCode(5);
+      }
+
+      const { error } = await supabase.from("students").insert({ class_id: classId, display_name, login_code: code });
+      if (error) msg(studentMsg, false, `Fehler: ${error.message}`);
+      else msg(studentMsg, true, `✅ Schüler erstellt. Code: <code>${escapeHtml(code)}</code>`);
+      $("studentName").value = "";
+      await loadStudentsForSelectedClass();
+      await loadResultsForSelectedClass();
+    });
+
+    // Batch UI
+    $("createBatchBtn").addEventListener("click", () => $("batchBox").style.display = "block");
+    $("cancelBatchBtn").addEventListener("click", () => { $("batchBox").style.display="none"; $("batchNames").value=""; });
+
+    $("runBatchBtn").addEventListener("click", async () => {
+      studentMsg.textContent = "";
+      const classId = classSelect.value;
+      if (!classId) { msg(studentMsg, false, "Bitte Klasse wählen."); return; }
+
+      const lines = $("batchNames").value.split("\n").map(x => x.trim()).filter(Boolean);
+      if (!lines.length) { msg(studentMsg, false, "Bitte mindestens einen Namen eingeben."); return; }
+
+      let okCount = 0;
+      for (const display_name of lines) {
+        let code = randCode(5);
+        for (let i=0;i<5;i++){
+          const { data: existing } = await supabase.from("students").select("id").eq("login_code", code).maybeSingle();
+          if (!existing) break;
+          code = randCode(5);
+        }
+        const { error } = await supabase.from("students").insert({ class_id: classId, display_name, login_code: code });
+        if (!error) okCount++;
+      }
+
+      msg(studentMsg, true, `✅ Batch fertig: ${okCount}/${lines.length} erstellt.`);
+      $("batchBox").style.display="none";
+      $("batchNames").value="";
+      await loadStudentsForSelectedClass();
+      await loadResultsForSelectedClass();
+    });
+
+    classSelect.addEventListener("change", async () => {
+      await loadStudentsForSelectedClass();
+      await loadResultsForSelectedClass();
+    });
+
+    await ensureUI();
+  </script>
+</body>
+</html>
