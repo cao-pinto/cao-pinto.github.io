@@ -3,64 +3,52 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Digitale Bildung – Spieleauswahl</title>
+  <title>Spiele – Fächerübersicht</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background:#f6f7fb; color:#111; }
     .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
     header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-    h1 { margin:0; font-size: 1.5rem; }
+    h1 { margin:0; font-size:1.55rem; }
     .card { background:#fff; border-radius:14px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,.08); }
     .grid { display:grid; gap:14px; grid-template-columns: 1fr; margin-top:14px; }
-    @media (min-width: 860px){ .grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 860px){ .grid { grid-template-columns: 1fr 1fr 1fr; } }
     a.btn {
-      display:inline-block; padding:10px 14px; border-radius:10px;
-      background:#1f6feb; color:#fff; text-decoration:none; font-weight:800;
+      display:block; padding:14px; border-radius:14px;
+      background:#1f6feb; color:#fff; text-decoration:none; font-weight:900;
     }
-    .muted { opacity:.8; }
+    .muted { opacity:.8; margin:10px 0 0; }
     .tag { display:inline-block; font-size:.85rem; padding:2px 8px; border-radius:999px; background:#f3f4f6; }
-    ul { margin:10px 0 0; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>Digitale Bildung – Spieleauswahl 🎮</h1>
-      <span class="tag">Binärsystem & Zahlen</span>
+      <h1>Spieleauswahl 🎮</h1>
+      <span class="tag">Fächer</span>
     </header>
 
     <div class="card" style="margin-top:14px;">
       <p class="muted" style="margin:0;">
-        Wähle ein Spiel aus. (Hinweis: Highscores werden je nach Spiel im Browser gespeichert.)
+        Wähle zuerst das Fach, dann das Spiel.
       </p>
     </div>
 
     <div class="grid">
-      <div class="card">
-        <h2 style="margin:0 0 10px;">Spiel 1: Binär-Quest</h2>
-        <p class="muted" style="margin:0 0 12px;">
-          10 Fragen, aufsteigend schwerer. Dezimal ↔ Binär, führende Nullen erlaubt, Punkte nur beim 1. Versuch,
-          Lehrermodus (PIN) zum Anpassen.
-        </p>
-        <a class="btn" href="./spiel1.html">Starten →</a>
-      </div>
+      <a class="btn" href="./mathematik.html">
+        Mathematik
+        <div class="muted">Kopfrechnen (Einmaleins) mit 120-Sekunden-Challenge</div>
+      </a>
 
-      <div class="card">
-        <h2 style="margin:0 0 10px;">Spiel 2: Binär-Blitz</h2>
-        <p class="muted" style="margin:0 0 12px;">
-          Schnelles Training mit Timer: so viele Aufgaben wie möglich in 90 Sekunden.
-          Ideal als Warm-up oder Abschluss.
-        </p>
-        <a class="btn" href="./spiel2.html">Starten →</a>
-      </div>
-    </div>
+      <a class="btn" href="./digitale-bildung.html">
+        Digitale Bildung
+        <div class="muted">Binärsystem-Spiele</div>
+      </a>
 
-    <div class="card" style="margin-top:14px;">
-      <strong>Für GitHub Pages:</strong>
-      <ul>
-        <li>Stelle sicher, dass diese Datei <code>index.html</code> heißt.</li>
-        <li>Dann ist die Startseite automatisch unter deiner Pages-URL sichtbar.</li>
-      </ul>
+      <a class="btn" href="./technisches-seminar.html">
+        Technisches Seminar
+        <div class="muted">Platzhalter / weitere Spiele</div>
+      </a>
     </div>
   </div>
 </body>
