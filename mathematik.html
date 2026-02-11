@@ -3,23 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lehrer – Klassen & Ergebnisse</title>
+  <title>Mathematik – Einmaleins (mit Code)</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin:0; background:#f6f7fb; color:#111; }
-    .wrap { max-width: 1100px; margin:0 auto; padding:24px; }
+    .wrap { max-width: 980px; margin:0 auto; padding:24px; }
     .card { background:#fff; border-radius:14px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:14px; }
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     input, select { padding:10px 12px; border-radius:10px; border:1px solid #ccd2e1; font-size:1rem; }
+    input { min-width:240px; }
     button { padding:10px 14px; border-radius:10px; border:0; background:#1f6feb; color:#fff; font-weight:900; cursor:pointer; }
+    button.secondary { background:#111827; }
     button.ghost { background:#e5e7eb; color:#111; }
+    a.ghost { text-decoration:none; padding:10px 14px; border-radius:10px; background:#e5e7eb; color:#111; font-weight:900; }
+    .pill { padding:6px 10px; border-radius:999px; background:#eef2ff; font-weight:900; }
     .muted { opacity:.8; }
     .ok { background:#ecfdf5; border:1px solid #10b98144; padding:10px; border-radius:10px; }
     .bad { background:#fef2f2; border:1px solid #ef444444; padding:10px; border-radius:10px; }
+    .feedback { margin-top:12px; display:none; }
     table { width:100%; border-collapse: collapse; margin-top:10px; }
     th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e7eb; }
     th { font-size:.9rem; opacity:.9; }
-    a.ghost { text-decoration:none; padding:10px 14px; border-radius:10px; background:#e5e7eb; color:#111; font-weight:900; }
     code { background:#111827; color:#fff; padding:2px 6px; border-radius:6px; }
   </style>
 </head>
@@ -27,74 +31,65 @@
   <div class="wrap">
     <div class="card">
       <div class="row" style="justify-content:space-between;">
-        <h1 style="margin:0;">Lehrer – Klassen & Ergebnisse</h1>
+        <h1 style="margin:0;">Mathematik – Einmaleins ⚡ (120s)</h1>
         <a class="ghost" href="./index.html">← Startseite</a>
       </div>
       <p class="muted" style="margin:10px 0 0;">
-        Lehrer-Login (Email/Passwort). Danach: Klassen anlegen, Schüler mit Codes erstellen, Ergebnisse ansehen.
+        Login mit Schüler-Code. Ergebnisse werden gespeichert und du siehst deinen Verlauf.
       </p>
     </div>
 
     <div class="card" id="loginCard">
-      <h2 style="margin-top:0;">Lehrer Login</h2>
+      <h2 style="margin-top:0;">Schüler-Code</h2>
       <div class="row">
-        <input id="email" placeholder="Lehrer Email" />
-        <input id="pass" type="password" placeholder="Passwort" />
-        <button id="loginBtn">Einloggen</button>
+        <input id="code" placeholder="Code (z.B. AB7K2)" style="text-transform:uppercase;" />
+        <button id="claimBtn">Anmelden</button>
+        <button class="ghost" id="logoutBtn" style="display:none;">Logout</button>
       </div>
-      <div id="loginMsg" style="margin-top:10px;"></div>
+      <div id="loginMsg" class="feedback"></div>
+      <div class="muted" style="margin-top:10px;">
+        Falls der Code „schon benutzt“ ist, bitte Lehrperson fragen.
+      </div>
     </div>
 
-    <div class="card" id="teacherCard" style="display:none;">
+    <div class="card" id="gameCard" style="display:none;">
       <div class="row" style="justify-content:space-between;">
         <div>
-          <div class="muted">Eingeloggt als:</div>
-          <div style="font-weight:900; font-size:1.1rem;" id="teacherName">—</div>
+          <div class="muted">Angemeldet als:</div>
+          <div style="font-weight:900; font-size:1.1rem;" id="studentName">—</div>
         </div>
         <div class="row">
-          <button class="ghost" id="refreshBtn">Aktualisieren</button>
-          <button class="ghost" id="logoutBtn">Logout</button>
+          <button id="smallBtn">Kleines 1×1</button>
+          <button id="bigBtn" class="secondary">Großes 1×1</button>
         </div>
       </div>
 
-      <hr style="border:none;border-top:1px solid #e5e7eb; margin:14px 0;"/>
-
-      <h2 style="margin:0 0 10px;">1) Klassen</h2>
-      <div class="row">
-        <input id="className" placeholder="Neue Klasse (z.B. 1A)" />
-        <button id="createClassBtn">Klasse anlegen</button>
-      </div>
-      <div id="classMsg" style="margin-top:10px;"></div>
-      <div id="classList" class="muted">—</div>
-
-      <hr style="border:none;border-top:1px solid #e5e7eb; margin:14px 0;"/>
-
-      <h2 style="margin:0 0 10px;">2) Schüler (Codes)</h2>
-      <div class="row">
-        <select id="classSelect"></select>
-        <input id="studentName" placeholder="Schüler-Name/Kürzel (z.B. LK05)" />
-        <button id="createStudentBtn">Schüler + Code erstellen</button>
-        <button class="ghost" id="createBatchBtn" title="Erstellt mehrere Schüler auf einmal">Batch</button>
-      </div>
-      <div class="muted" style="margin-top:10px;">
-        Batch: Du kannst mehrere Namen/Kürzel in ein Feld schreiben (eine Zeile pro Kind).
-      </div>
-      <div id="batchBox" style="display:none; margin-top:10px;">
-        <textarea id="batchNames" style="width:100%;min-height:140px;border-radius:10px;border:1px solid #ccd2e1;padding:10px;"
-          placeholder="LK01&#10;LK02&#10;LK03"></textarea>
-        <div class="row" style="margin-top:10px;">
-          <button id="runBatchBtn">Batch erstellen</button>
-          <button class="ghost" id="cancelBatchBtn">Abbrechen</button>
+      <div id="runArea" style="display:none; margin-top:14px;">
+        <div class="row" style="justify-content:space-between;">
+          <div class="pill">Zeit: <span id="time">120</span>s</div>
+          <div class="pill">Richtig: <span id="right">0</span></div>
+          <div class="pill">Streak: <span id="streak">0</span></div>
         </div>
+
+        <div style="margin-top:14px;">
+          <div class="muted">Rechnung:</div>
+          <div id="task" style="font-size:1.8rem; font-weight:900;">—</div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <input id="answer" inputmode="numeric" autocomplete="off" placeholder="Ergebnis…" />
+          <button id="okBtn">OK</button>
+          <button class="ghost" id="stopBtn">Stop</button>
+        </div>
+
+        <div id="fb" class="feedback"></div>
       </div>
-      <div id="studentMsg" style="margin-top:10px;"></div>
-      <div id="studentList" class="muted">—</div>
 
-      <hr style="border:none;border-top:1px solid #e5e7eb; margin:14px 0;"/>
-
-      <h2 style="margin:0 0 10px;">3) Ergebnisse (Mathe)</h2>
-      <div class="muted">Wähle eine Klasse, dann siehst du die besten Ergebnisse & Verlauf.</div>
-      <div id="resultsBox" class="muted" style="margin-top:10px;">—</div>
+      <div id="historyArea" style="margin-top:14px;">
+        <h3 style="margin:0 0 8px;">Meine Entwicklung</h3>
+        <div id="statsBox" class="muted">—</div>
+        <div id="historyBox" class="muted">—</div>
+      </div>
     </div>
   </div>
 
@@ -105,269 +100,254 @@
     const SUPABASE_URL = "PASTE_SUPABASE_URL";
     const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY";
 
+    // TODO: Function URL (Edge Functions → claim_code)
+    const FN_CLAIM_CODE = "PASTE_FUNCTION_URL/claim_code";
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const DURATION = 120;
     const $ = (id) => document.getElementById(id);
+
     const loginCard = $("loginCard");
-    const teacherCard = $("teacherCard");
+    const gameCard = $("gameCard");
     const loginMsg = $("loginMsg");
-    const classMsg = $("classMsg");
-    const studentMsg = $("studentMsg");
+    const fb = $("fb");
 
-    const classSelect = $("classSelect");
+    let studentId = null;
+    let studentName = null;
 
-    function msg(el, ok, text) { el.innerHTML = `<div class="${ok ? "ok" : "bad"}">${text}</div>`; }
-    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
-    function randCode(len=5){
-      const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // ohne I,O,1,0
-      let out="";
-      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
-      return out;
+    let mode = "small";
+    let max = 10;
+
+    let t = DURATION;
+    let timer = null;
+    let right = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let a = 0, b = 0;
+
+    function showMsg(el, ok, text) {
+      el.style.display = "block";
+      el.className = "feedback " + (ok ? "ok" : "bad");
+      el.innerHTML = text;
     }
 
-    let teacher = null;
-    let classes = [];
-    let studentsByClass = new Map();
+    function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
-    async function ensureUI() {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        loginCard.style.display = "block";
-        teacherCard.style.display = "none";
-        return;
+    function newTask(){
+      a = randInt(1, max);
+      b = randInt(1, max);
+      $("task").textContent = `${a} × ${b} = ?`;
+      $("answer").value = "";
+      $("answer").focus();
+    }
+
+    function tick(){
+      t -= 1;
+      $("time").textContent = String(t);
+      if (t <= 0) stop(true);
+    }
+
+    async function startRun(selectedMode){
+      mode = selectedMode;
+      max = mode === "small" ? 10 : 20;
+
+      t = DURATION;
+      right = 0;
+      streak = 0;
+      bestStreak = 0;
+      $("time").textContent = String(DURATION);
+      $("right").textContent = "0";
+      $("streak").textContent = "0";
+      fb.style.display = "none";
+
+      $("runArea").style.display = "block";
+      newTask();
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, 1000);
+    }
+
+    function check(){
+      const raw = $("answer").value.trim();
+      if (!/^\d+$/.test(raw)) { showMsg(fb, false, "⚠️ Bitte nur Ziffern eingeben."); return; }
+
+      const ans = Number(raw);
+      const correct = a * b;
+
+      if (ans === correct) {
+        right += 1;
+        streak += 1;
+        bestStreak = Math.max(bestStreak, streak);
+        $("right").textContent = String(right);
+        $("streak").textContent = String(streak);
+        showMsg(fb, true, "✅ Richtig!");
+        newTask();
+      } else {
+        streak = 0;
+        $("streak").textContent = "0";
+        showMsg(fb, false, `❌ Falsch. Richtig wäre <strong>${correct}</strong>. Nächste!`);
+        newTask();
       }
-      loginCard.style.display = "none";
-      teacherCard.style.display = "block";
-      await loadTeacher();
-      await loadClasses();
-      await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass();
     }
 
-    async function loadTeacher() {
-      const { data: u } = await supabase.auth.getUser();
-      const userId = u.user?.id;
-      const { data, error } = await supabase.from("teachers").select("id,display_name").eq("user_id", userId).single();
-      if (error) {
-        $("teacherName").textContent = "Kein Teacher-Profil gefunden (Admin muss dich anlegen).";
-        return;
-      }
-      teacher = data;
-      $("teacherName").textContent = data.display_name;
+    async function stop(fromTimer){
+      if (timer) clearInterval(timer);
+      timer = null;
+      $("runArea").style.display = "none";
+
+      // Attempt speichern
+      const { error } = await supabase.from("attempts").insert({
+        student_id: studentId,
+        mode,
+        correct_count: right,
+        duration_seconds: DURATION
+      });
+
+      if (error) showMsg(loginMsg, false, `Speichern fehlgeschlagen: ${error.message}`);
+      else showMsg(loginMsg, true, `✅ Gespeichert: ${right} richtig (${mode === "small" ? "klein" : "groß"}), beste Streak: ${bestStreak}`);
+
+      await loadHistory();
     }
 
-    async function loadClasses() {
-      $("classList").textContent = "Lade Klassen…";
-      const { data, error } = await supabase.from("classes").select("id,name,created_at").order("created_at", { ascending:false });
-      if (error) { $("classList").innerHTML = `<div class="bad">Fehler: ${error.message}</div>`; return; }
-      classes = data || [];
-
-      // Select füllen
-      classSelect.innerHTML = classes.length
-        ? classes.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")
-        : `<option value="">(keine Klassen)</option>`;
-
-      // Liste zeigen
-      if (!classes.length) { $("classList").innerHTML = `<div class="muted">Noch keine Klassen.</div>`; return; }
-      $("classList").innerHTML = `
-        <table>
-          <thead><tr><th>Klasse</th><th>ID</th><th>Erstellt</th></tr></thead>
-          <tbody>${classes.map(c => {
-            const d = new Date(c.created_at).toLocaleString("de-AT");
-            return `<tr><td><strong>${escapeHtml(c.name)}</strong></td><td>${c.id}</td><td class="muted">${d}</td></tr>`;
-          }).join("")}</tbody>
-        </table>`;
-    }
-
-    async function loadStudentsForSelectedClass() {
-      const classId = classSelect.value;
-      $("studentList").textContent = "Lade Schüler…";
-      if (!classId) { $("studentList").innerHTML = `<div class="muted">Bitte zuerst eine Klasse anlegen.</div>`; return; }
+    async function loadHistory(){
+      $("statsBox").textContent = "Lade Statistik…";
+      $("historyBox").textContent = "Lade Verlauf…";
 
       const { data, error } = await supabase
-        .from("students")
-        .select("id,display_name,login_code,claimed_at,created_at")
-        .eq("class_id", classId)
-        .order("created_at", { ascending:false });
-
-      if (error) { $("studentList").innerHTML = `<div class="bad">Fehler: ${error.message}</div>`; return; }
-      const students = data || [];
-      studentsByClass.set(classId, students);
-
-      if (!students.length) {
-        $("studentList").innerHTML = `<div class="muted">Noch keine Schüler in dieser Klasse.</div>`;
-        return;
-      }
-
-      $("studentList").innerHTML = `
-        <table>
-          <thead><tr><th>Name</th><th>Code</th><th>Status</th></tr></thead>
-          <tbody>${students.map(s => {
-            const claimed = s.claimed_at ? "✅ benutzt" : "🆕 neu";
-            return `<tr>
-              <td><strong>${escapeHtml(s.display_name)}</strong></td>
-              <td><code>${escapeHtml(s.login_code)}</code></td>
-              <td class="muted">${claimed}</td>
-            </tr>`;
-          }).join("")}</tbody>
-        </table>`;
-    }
-
-    async function loadResultsForSelectedClass() {
-      const classId = classSelect.value;
-      $("resultsBox").textContent = "Lade Ergebnisse…";
-      if (!classId) { $("resultsBox").innerHTML = `<div class="muted">Bitte zuerst eine Klasse wählen.</div>`; return; }
-
-      // Schüler laden (oder cached)
-      let students = studentsByClass.get(classId);
-      if (!students) {
-        const { data } = await supabase.from("students").select("id,display_name").eq("class_id", classId);
-        students = data || [];
-      }
-
-      if (!students.length) {
-        $("resultsBox").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`;
-        return;
-      }
-
-      const studentIds = students.map(s => s.id);
-
-      // Attempts der Klasse laden (nur Mathe, daher mode small/big)
-      const { data: attempts, error } = await supabase
         .from("attempts")
-        .select("student_id,mode,correct_count,created_at")
-        .in("student_id", studentIds)
-        .order("created_at", { ascending:false });
+        .select("mode,correct_count,created_at")
+        .eq("student_id", studentId)
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-      if (error) { $("resultsBox").innerHTML = `<div class="bad">Fehler: ${error.message}</div>`; return; }
+      if (error) {
+        $("statsBox").innerHTML = `<div class="bad">Fehler: ${error.message}</div>`;
+        $("historyBox").textContent = "—";
+        return;
+      }
 
-      const byStudent = new Map();
-      for (const s of students) byStudent.set(s.id, []);
-      for (const a of (attempts || [])) byStudent.get(a.student_id)?.push(a);
+      const attempts = data || [];
+      if (!attempts.length) {
+        $("statsBox").innerHTML = `<div class="muted">Noch keine Versuche gespeichert.</div>`;
+        $("historyBox").textContent = "—";
+        return;
+      }
 
-      // Bestwerte
-      const rows = students.map(s => {
-        const list = byStudent.get(s.id) || [];
-        const best = list.reduce((m, x) => Math.max(m, x.correct_count), 0);
-        const last5 = list.slice(0,5);
-        const avg5 = last5.length ? Math.round(last5.reduce((sum,x)=>sum+x.correct_count,0)/last5.length) : 0;
-        return { name: s.display_name, best, avg5, n: list.length };
-      }).sort((a,b)=> b.best - a.best || b.avg5 - a.avg5);
+      const best = attempts.reduce((m,a)=>Math.max(m,a.correct_count),0);
+      const last5 = attempts.slice(0,5);
+      const avg5 = Math.round(last5.reduce((s,a)=>s+a.correct_count,0)/last5.length);
+      const trend = attempts.length >= 2 ? (attempts[0].correct_count - attempts[Math.min(5,attempts.length-1)].correct_count) : 0;
 
-      $("resultsBox").innerHTML = `
+      $("statsBox").innerHTML = `
+        <div class="ok">
+          Bestwert: <strong>${best}</strong> &nbsp;|&nbsp;
+          Ø letzte 5: <strong>${avg5}</strong> &nbsp;|&nbsp;
+          Trend (grob): <strong>${trend >= 0 ? "+" : ""}${trend}</strong>
+        </div>
+      `;
+
+      $("historyBox").innerHTML = `
         <table>
-          <thead><tr><th>Schüler</th><th>Bestwert</th><th>Ø letzte 5</th><th>Versuche</th></tr></thead>
+          <thead><tr><th>Datum</th><th>Modus</th><th>Richtig</th></tr></thead>
           <tbody>
-            ${rows.map(r => `<tr>
-              <td><strong>${escapeHtml(r.name)}</strong></td>
-              <td>${r.best}</td>
-              <td class="muted">${r.avg5}</td>
-              <td class="muted">${r.n}</td>
-            </tr>`).join("")}
+            ${attempts.map(a => {
+              const d = new Date(a.created_at).toLocaleString("de-AT");
+              return `<tr>
+                <td class="muted">${d}</td>
+                <td>${a.mode === "small" ? "Klein" : "Groß"}</td>
+                <td><strong>${a.correct_count}</strong></td>
+              </tr>`;
+            }).join("")}
           </tbody>
         </table>
-        <div class="muted" style="margin-top:10px;">
-          Tipp: Wenn du später mehr Statistik willst (z.B. welche Reihen Probleme machen), speichern wir pro Aufgabe Details.
-        </div>
       `;
     }
 
-    $("loginBtn").addEventListener("click", async () => {
-      loginMsg.textContent = "";
-      const email = $("email").value.trim();
-      const password = $("pass").value.trim();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) msg(loginMsg, false, `Login fehlgeschlagen: ${error.message}`);
-      else msg(loginMsg, true, "✅ Eingeloggt.");
-      await ensureUI();
-    });
+    async function ensureAnonSession(){
+      const { data } = await supabase.auth.getSession();
+      if (data.session) return;
+      await supabase.auth.signInAnonymously();
+    }
 
-    $("logoutBtn").addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      await ensureUI();
-    });
+    async function claimCode(){
+      await ensureAnonSession();
 
-    $("refreshBtn").addEventListener("click", async () => {
-      await loadClasses();
-      await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass();
-    });
+      const code = $("code").value.trim().toUpperCase();
+      if (!code) { showMsg(loginMsg, false, "Bitte Code eingeben."); return; }
 
-    $("createClassBtn").addEventListener("click", async () => {
-      classMsg.textContent = "";
-      const name = $("className").value.trim();
-      if (!name) { msg(classMsg, false, "Bitte Klassenname eingeben."); return; }
-      if (!teacher?.id) { msg(classMsg, false, "Teacher-Profil fehlt. Admin muss dich anlegen."); return; }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) { showMsg(loginMsg, false, "Kein Token. Bitte Seite neu laden."); return; }
 
-      const { error } = await supabase.from("classes").insert({ teacher_id: teacher.id, name });
-      if (error) msg(classMsg, false, `Fehler: ${error.message}`);
-      else msg(classMsg, true, "✅ Klasse angelegt.");
-      $("className").value = "";
-      await loadClasses();
-      await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass();
-    });
+      try {
+        const res = await fetch(FN_CLAIM_CODE, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ code })
+        });
 
-    $("createStudentBtn").addEventListener("click", async () => {
-      studentMsg.textContent = "";
-      const classId = classSelect.value;
-      const display_name = $("studentName").value.trim();
-      if (!classId) { msg(studentMsg, false, "Bitte Klasse wählen."); return; }
-      if (!display_name) { msg(studentMsg, false, "Bitte Schülername/Kürzel eingeben."); return; }
-
-      // Code sicherheitshalber unique versuchen
-      let code = randCode(5);
-      for (let i=0;i<5;i++){
-        const { data: existing } = await supabase.from("students").select("id").eq("login_code", code).maybeSingle();
-        if (!existing) break;
-        code = randCode(5);
-      }
-
-      const { error } = await supabase.from("students").insert({ class_id: classId, display_name, login_code: code });
-      if (error) msg(studentMsg, false, `Fehler: ${error.message}`);
-      else msg(studentMsg, true, `✅ Schüler erstellt. Code: <code>${escapeHtml(code)}</code>`);
-      $("studentName").value = "";
-      await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass();
-    });
-
-    // Batch UI
-    $("createBatchBtn").addEventListener("click", () => $("batchBox").style.display = "block");
-    $("cancelBatchBtn").addEventListener("click", () => { $("batchBox").style.display="none"; $("batchNames").value=""; });
-
-    $("runBatchBtn").addEventListener("click", async () => {
-      studentMsg.textContent = "";
-      const classId = classSelect.value;
-      if (!classId) { msg(studentMsg, false, "Bitte Klasse wählen."); return; }
-
-      const lines = $("batchNames").value.split("\n").map(x => x.trim()).filter(Boolean);
-      if (!lines.length) { msg(studentMsg, false, "Bitte mindestens einen Namen eingeben."); return; }
-
-      let okCount = 0;
-      for (const display_name of lines) {
-        let code = randCode(5);
-        for (let i=0;i<5;i++){
-          const { data: existing } = await supabase.from("students").select("id").eq("login_code", code).maybeSingle();
-          if (!existing) break;
-          code = randCode(5);
+        const json = await res.json();
+        if (!res.ok) {
+          showMsg(loginMsg, false, `❌ ${json.error || "Fehler"}`);
+          return;
         }
-        const { error } = await supabase.from("students").insert({ class_id: classId, display_name, login_code: code });
-        if (!error) okCount++;
+
+        studentId = json.student.id;
+        studentName = json.student.display_name;
+
+        localStorage.setItem("student_id", studentId);
+        localStorage.setItem("student_name", studentName);
+
+        $("studentName").textContent = studentName;
+        showMsg(loginMsg, true, `✅ Willkommen, <strong>${studentName}</strong>!`);
+        $("logoutBtn").style.display = "inline-block";
+
+        gameCard.style.display = "block";
+        await loadHistory();
+      } catch (e) {
+        showMsg(loginMsg, false, `Netzwerkfehler: ${String(e)}`);
       }
+    }
 
-      msg(studentMsg, true, `✅ Batch fertig: ${okCount}/${lines.length} erstellt.`);
-      $("batchBox").style.display="none";
-      $("batchNames").value="";
-      await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass();
-    });
+    async function logout(){
+      localStorage.removeItem("student_id");
+      localStorage.removeItem("student_name");
+      studentId = null;
+      studentName = null;
+      $("logoutBtn").style.display = "none";
+      gameCard.style.display = "none";
+      await supabase.auth.signOut();
+      showMsg(loginMsg, true, "Abgemeldet.");
+    }
 
-    classSelect.addEventListener("change", async () => {
-      await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass();
-    });
+    // UI events
+    $("claimBtn").addEventListener("click", claimCode);
+    $("code").addEventListener("keydown", (e) => { if (e.key === "Enter") claimCode(); });
+    $("logoutBtn").addEventListener("click", logout);
 
-    await ensureUI();
+    $("smallBtn").addEventListener("click", () => startRun("small"));
+    $("bigBtn").addEventListener("click", () => startRun("big"));
+    $("okBtn").addEventListener("click", check);
+    $("stopBtn").addEventListener("click", () => stop(false));
+    $("answer").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
+
+    // Auto-restore (wenn bereits geclaimt auf diesem Gerät)
+    await ensureAnonSession();
+    const savedId = localStorage.getItem("student_id");
+    const savedName = localStorage.getItem("student_name");
+    if (savedId && savedName) {
+      studentId = savedId;
+      studentName = savedName;
+      $("studentName").textContent = studentName;
+      $("logoutBtn").style.display = "inline-block";
+      gameCard.style.display = "block";
+      showMsg(loginMsg, true, `✅ Willkommen zurück, <strong>${studentName}</strong>`);
+      await loadHistory();
+    }
   </script>
 </body>
 </html>
