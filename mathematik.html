@@ -10,8 +10,7 @@
     .wrap { max-width: 980px; margin:0 auto; padding:24px; }
     .card { background:#fff; border-radius:14px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:14px; }
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    input, select { padding:10px 12px; border-radius:10px; border:1px solid #ccd2e1; font-size:1rem; }
-    input { min-width:240px; }
+    input { padding:10px 12px; border-radius:10px; border:1px solid #ccd2e1; font-size:1rem; min-width:240px; }
     button { padding:10px 14px; border-radius:10px; border:0; background:#1f6feb; color:#fff; font-weight:900; cursor:pointer; }
     button.secondary { background:#111827; }
     button.ghost { background:#e5e7eb; color:#111; }
@@ -24,7 +23,6 @@
     table { width:100%; border-collapse: collapse; margin-top:10px; }
     th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e7eb; }
     th { font-size:.9rem; opacity:.9; }
-    code { background:#111827; color:#fff; padding:2px 6px; border-radius:6px; }
   </style>
 </head>
 <body>
@@ -96,20 +94,18 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // TODO: HIER EINTRAGEN (Project Settings → API)
-    const SUPABASE_URL = "PASTE_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY";
+    // Fix eingetragen
+    const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
 
-    // TODO: Function URL (Edge Functions → claim_code)
-    const FN_CLAIM_CODE = "PASTE_FUNCTION_URL/claim_code";
+    // Fix eingetragen
+    const FN_CLAIM_CODE = "https://dnlencbwbbriijmzijci.functions.supabase.co/claim_code";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const DURATION = 120;
     const $ = (id) => document.getElementById(id);
 
-    const loginCard = $("loginCard");
-    const gameCard = $("gameCard");
     const loginMsg = $("loginMsg");
     const fb = $("fb");
 
@@ -196,7 +192,6 @@
       timer = null;
       $("runArea").style.display = "none";
 
-      // Attempt speichern
       const { error } = await supabase.from("attempts").insert({
         student_id: studentId,
         mode,
@@ -237,7 +232,10 @@
       const best = attempts.reduce((m,a)=>Math.max(m,a.correct_count),0);
       const last5 = attempts.slice(0,5);
       const avg5 = Math.round(last5.reduce((s,a)=>s+a.correct_count,0)/last5.length);
-      const trend = attempts.length >= 2 ? (attempts[0].correct_count - attempts[Math.min(5,attempts.length-1)].correct_count) : 0;
+
+      // grober Trend: letzter - (bis zu) 6. letzter
+      const idx = Math.min(5, attempts.length - 1);
+      const trend = attempts[0].correct_count - attempts[idx].correct_count;
 
       $("statsBox").innerHTML = `
         <div class="ok">
@@ -306,7 +304,7 @@
         showMsg(loginMsg, true, `✅ Willkommen, <strong>${studentName}</strong>!`);
         $("logoutBtn").style.display = "inline-block";
 
-        gameCard.style.display = "block";
+        $("gameCard").style.display = "block";
         await loadHistory();
       } catch (e) {
         showMsg(loginMsg, false, `Netzwerkfehler: ${String(e)}`);
@@ -319,12 +317,11 @@
       studentId = null;
       studentName = null;
       $("logoutBtn").style.display = "none";
-      gameCard.style.display = "none";
+      $("gameCard").style.display = "none";
       await supabase.auth.signOut();
       showMsg(loginMsg, true, "Abgemeldet.");
     }
 
-    // UI events
     $("claimBtn").addEventListener("click", claimCode);
     $("code").addEventListener("keydown", (e) => { if (e.key === "Enter") claimCode(); });
     $("logoutBtn").addEventListener("click", logout);
@@ -335,7 +332,7 @@
     $("stopBtn").addEventListener("click", () => stop(false));
     $("answer").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
 
-    // Auto-restore (wenn bereits geclaimt auf diesem Gerät)
+    // Auto-restore (nur für dieses Gerät)
     await ensureAnonSession();
     const savedId = localStorage.getItem("student_id");
     const savedName = localStorage.getItem("student_name");
@@ -344,7 +341,7 @@
       studentName = savedName;
       $("studentName").textContent = studentName;
       $("logoutBtn").style.display = "inline-block";
-      gameCard.style.display = "block";
+      $("gameCard").style.display = "block";
       showMsg(loginMsg, true, `✅ Willkommen zurück, <strong>${studentName}</strong>`);
       await loadHistory();
     }
