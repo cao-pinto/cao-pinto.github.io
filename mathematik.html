@@ -33,7 +33,7 @@
         <a class="ghost" href="./index.html">← Startseite</a>
       </div>
       <p class="muted" style="margin:10px 0 0;">
-        Login mit Schüler-Code. Ergebnisse werden gespeichert und du siehst deinen Verlauf.
+        Login mit Schüler-Code. Gespeichert werden richtig, falsch, Gesamt und Verhältnis (Accuracy).
       </p>
     </div>
 
@@ -66,6 +66,8 @@
         <div class="row" style="justify-content:space-between;">
           <div class="pill">Zeit: <span id="time">120</span>s</div>
           <div class="pill">Richtig: <span id="right">0</span></div>
+          <div class="pill">Falsch: <span id="wrong">0</span></div>
+          <div class="pill">Accuracy: <span id="acc">0%</span></div>
           <div class="pill">Streak: <span id="streak">0</span></div>
         </div>
 
@@ -94,11 +96,8 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // Fix eingetragen
     const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
-
-    // Fix eingetragen
     const FN_CLAIM_CODE = "https://dnlencbwbbriijmzijci.functions.supabase.co/claim_code";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -117,9 +116,12 @@
 
     let t = DURATION;
     let timer = null;
+
     let right = 0;
+    let wrong = 0;
     let streak = 0;
     let bestStreak = 0;
+
     let a = 0, b = 0;
 
     function showMsg(el, ok, text) {
@@ -129,6 +131,15 @@
     }
 
     function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+    function updateAccUI() {
+      const total = right + wrong;
+      const acc = total > 0 ? (right / total) : 0;
+      $("acc").textContent = Math.round(acc * 100) + "%";
+      $("right").textContent = String(right);
+      $("wrong").textContent = String(wrong);
+      $("streak").textContent = String(streak);
+    }
 
     function newTask(){
       a = randInt(1, max);
@@ -150,12 +161,14 @@
 
       t = DURATION;
       right = 0;
+      wrong = 0;
       streak = 0;
       bestStreak = 0;
+
       $("time").textContent = String(DURATION);
-      $("right").textContent = "0";
-      $("streak").textContent = "0";
       fb.style.display = "none";
+
+      updateAccUI();
 
       $("runArea").style.display = "block";
       newTask();
@@ -175,16 +188,15 @@
         right += 1;
         streak += 1;
         bestStreak = Math.max(bestStreak, streak);
-        $("right").textContent = String(right);
-        $("streak").textContent = String(streak);
         showMsg(fb, true, "✅ Richtig!");
-        newTask();
       } else {
+        wrong += 1;
         streak = 0;
-        $("streak").textContent = "0";
         showMsg(fb, false, `❌ Falsch. Richtig wäre <strong>${correct}</strong>. Nächste!`);
-        newTask();
       }
+
+      updateAccUI();
+      newTask();
     }
 
     async function stop(fromTimer){
@@ -192,15 +204,28 @@
       timer = null;
       $("runArea").style.display = "none";
 
+      const total = right + wrong;
+      const accuracy = total > 0 ? (right / total) : 0;
+
       const { error } = await supabase.from("attempts").insert({
         student_id: studentId,
         mode,
         correct_count: right,
+        wrong_count: wrong,
+        total_count: total,
+        accuracy: accuracy,
         duration_seconds: DURATION
       });
 
-      if (error) showMsg(loginMsg, false, `Speichern fehlgeschlagen: ${error.message}`);
-      else showMsg(loginMsg, true, `✅ Gespeichert: ${right} richtig (${mode === "small" ? "klein" : "groß"}), beste Streak: ${bestStreak}`);
+      if (error) {
+        showMsg(loginMsg, false, `Speichern fehlgeschlagen: ${error.message}`);
+      } else {
+        showMsg(
+          loginMsg,
+          true,
+          `✅ Gespeichert: Richtig <strong>${right}</strong>, Falsch <strong>${wrong}</strong>, Gesamt <strong>${total}</strong>, Accuracy <strong>${Math.round(accuracy*100)}%</strong> (${mode === "small" ? "klein" : "groß"}), beste Streak: ${bestStreak}`
+        );
+      }
 
       await loadHistory();
     }
@@ -211,7 +236,7 @@
 
       const { data, error } = await supabase
         .from("attempts")
-        .select("mode,correct_count,created_at")
+        .select("mode,correct_count,wrong_count,total_count,accuracy,created_at")
         .eq("student_id", studentId)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -229,32 +254,34 @@
         return;
       }
 
-      const best = attempts.reduce((m,a)=>Math.max(m,a.correct_count),0);
-      const last5 = attempts.slice(0,5);
-      const avg5 = Math.round(last5.reduce((s,a)=>s+a.correct_count,0)/last5.length);
+      const bestCorrect = attempts.reduce((m,a)=>Math.max(m,a.correct_count),0);
+      const bestAcc = attempts.reduce((m,a)=>Math.max(m,Number(a.accuracy ?? 0)),0);
 
-      // grober Trend: letzter - (bis zu) 6. letzter
-      const idx = Math.min(5, attempts.length - 1);
-      const trend = attempts[0].correct_count - attempts[idx].correct_count;
+      const last5 = attempts.slice(0,5);
+      const avgAcc5 = last5.length ? (last5.reduce((s,a)=>s+Number(a.accuracy ?? 0),0)/last5.length) : 0;
 
       $("statsBox").innerHTML = `
         <div class="ok">
-          Bestwert: <strong>${best}</strong> &nbsp;|&nbsp;
-          Ø letzte 5: <strong>${avg5}</strong> &nbsp;|&nbsp;
-          Trend (grob): <strong>${trend >= 0 ? "+" : ""}${trend}</strong>
+          Bestwert richtig: <strong>${bestCorrect}</strong>
+          &nbsp;|&nbsp; Beste Accuracy: <strong>${Math.round(bestAcc*100)}%</strong>
+          &nbsp;|&nbsp; Ø Accuracy letzte 5: <strong>${Math.round(avgAcc5*100)}%</strong>
         </div>
       `;
 
       $("historyBox").innerHTML = `
         <table>
-          <thead><tr><th>Datum</th><th>Modus</th><th>Richtig</th></tr></thead>
+          <thead><tr><th>Datum</th><th>Modus</th><th>Richtig</th><th>Falsch</th><th>Gesamt</th><th>Accuracy</th></tr></thead>
           <tbody>
             ${attempts.map(a => {
               const d = new Date(a.created_at).toLocaleString("de-AT");
+              const acc = Math.round(Number(a.accuracy ?? 0) * 100) + "%";
               return `<tr>
                 <td class="muted">${d}</td>
                 <td>${a.mode === "small" ? "Klein" : "Groß"}</td>
                 <td><strong>${a.correct_count}</strong></td>
+                <td>${a.wrong_count ?? 0}</td>
+                <td class="muted">${a.total_count ?? (a.correct_count + (a.wrong_count ?? 0))}</td>
+                <td class="muted">${acc}</td>
               </tr>`;
             }).join("")}
           </tbody>
@@ -280,15 +307,14 @@
 
       try {
         const res = await fetch(FN_CLAIM_CODE, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          "apikey": SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({ code })
-      });
-
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+            "apikey": SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({ code })
+        });
 
         const json = await res.json();
         if (!res.ok) {
@@ -334,7 +360,7 @@
     $("stopBtn").addEventListener("click", () => stop(false));
     $("answer").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
 
-    // Auto-restore (nur für dieses Gerät)
+    // Auto-restore (nur auf diesem Gerät)
     await ensureAnonSession();
     const savedId = localStorage.getItem("student_id");
     const savedName = localStorage.getItem("student_name");
