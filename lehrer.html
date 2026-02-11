@@ -33,7 +33,7 @@
         <a class="ghost" href="./index.html">← Startseite</a>
       </div>
       <p class="muted" style="margin:10px 0 0;">
-        Schüler verwalten (Codes), Ergebnisse ansehen, Statistik resetten, Schüler/Klassen inkl. Login löschen.
+        Schüler verwalten (Codes), Ergebnisse ansehen, Reset, Schüler/Klassen inkl. Login löschen.
       </p>
     </div>
 
@@ -92,9 +92,15 @@
 
       <hr style="border:none;border-top:1px solid #e5e7eb; margin:14px 0;"/>
 
-      <h2 style="margin:0 0 10px;">3) Ergebnisse (Mathe)</h2>
-      <div class="muted">Anzeige: Bestwert richtig + Ø Accuracy (letzte 5) + beantwortet (letzte 5). Reset löscht Attempts.</div>
-      <div id="resultsBox" class="muted" style="margin-top:10px;">—</div>
+      <h2 style="margin:0 0 10px;">3) Ergebnisse – Mathematik</h2>
+      <div class="muted">Bestwert richtig + Ø Accuracy (letzte 5) + beantwortet (letzte 5). Reset löscht Attempts.</div>
+      <div id="resultsMath" class="muted" style="margin-top:10px;">—</div>
+
+      <hr style="border:none;border-top:1px solid #e5e7eb; margin:14px 0;"/>
+
+      <h2 style="margin:0 0 10px;">4) Ergebnisse – Binärumwandlung</h2>
+      <div class="muted">Bestwert richtig + Ø Accuracy (letzte 5) + beantwortet (letzte 5). Reset löscht Attempts.</div>
+      <div id="resultsBinary" class="muted" style="margin-top:10px;">—</div>
     </div>
   </div>
 
@@ -104,7 +110,6 @@
     const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
 
-    // Edge Functions
     const FN_TEACHER_DELETE_STUDENT = "https://dnlencbwbbriijmzijci.functions.supabase.co/teacher_delete_student";
     const FN_TEACHER_DELETE_CLASS   = "https://dnlencbwbbriijmzijci.functions.supabase.co/teacher_delete_class";
 
@@ -150,7 +155,7 @@
       await loadTeacher();
       await loadClasses();
       await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass();
+      await loadResultsForSelectedClass(); // lädt beide Spiele
     }
 
     async function loadTeacher() {
@@ -196,7 +201,6 @@
           }).join("")}</tbody>
         </table>`;
 
-      // Handler: Klasse löschen (inkl. Auth-User der Schüler)
       document.querySelectorAll("[data-del-class]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const cid = btn.getAttribute("data-del-class");
@@ -207,7 +211,7 @@
             `Wirklich Klasse "${cname}" löschen?\n` +
             `- Alle Schüler dieser Klasse werden gelöscht\n` +
             `- Alle Logins (Auth-User) der Schüler werden gelöscht\n` +
-            `- Alle Ergebnisse (Attempts) werden gelöscht\n` +
+            `- Alle Ergebnisse (Mathe + Binär) werden gelöscht\n` +
             `(Kann nicht rückgängig gemacht werden)`
           );
           if (!ok) return;
@@ -233,7 +237,6 @@
             }
 
             alert(`✅ Klasse gelöscht: ${json.class_name || cname}\nAuth-User gelöscht: ${json.deleted_auth_users ?? 0}`);
-
             await loadClasses();
             await loadStudentsForSelectedClass();
             await loadResultsForSelectedClass();
@@ -281,14 +284,13 @@
         </table>
       `;
 
-      // Schüler löschen (Auth-User + Student + Attempts)
       document.querySelectorAll("[data-del-student]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const sid = btn.getAttribute("data-del-student");
           const name = btn.getAttribute("data-del-name") || "Schüler";
           if (!sid) return;
 
-          const ok = confirm(`Wirklich "${name}" löschen?\n- Login (Auth-User) wird gelöscht\n- Schüler wird gelöscht\n- alle Ergebnisse werden gelöscht\n(Das kann nicht rückgängig gemacht werden)`);
+          const ok = confirm(`Wirklich "${name}" löschen?\n- Login (Auth-User) wird gelöscht\n- Schüler wird gelöscht\n- alle Ergebnisse (Mathe + Binär) werden gelöscht\n(Das kann nicht rückgängig gemacht werden)`);
           if (!ok) return;
 
           const token = await getTokenOrAlert();
@@ -312,7 +314,6 @@
             }
 
             alert(`✅ Schüler gelöscht. Auth-User gelöscht: ${json.deleted_auth_user ? "ja" : "nein (war nicht vorhanden)"}`);
-
             await loadStudentsForSelectedClass();
             await loadResultsForSelectedClass();
           } catch (e) {
@@ -322,47 +323,17 @@
       });
     }
 
-    async function loadResultsForSelectedClass() {
-      const classId = classSelect.value;
-      $("resultsBox").textContent = "Lade Ergebnisse…";
-      if (!classId) { $("resultsBox").innerHTML = `<div class="muted">Bitte zuerst eine Klasse wählen.</div>`; return; }
-
-      let students = studentsByClass.get(classId);
-      if (!students) {
-        const { data } = await supabase.from("students").select("id,display_name").eq("class_id", classId);
-        students = data || [];
+    function renderResultsTable(targetElId, title, rows, onResetClass, onResetStudent){
+      const el = $(targetElId);
+      if (!rows.length) {
+        el.innerHTML = `<div class="muted">Noch keine Ergebnisse.</div>`;
+        return;
       }
-      if (!students.length) { $("resultsBox").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`; return; }
-
-      const studentIds = students.map(s => s.id);
-
-      const { data: attempts, error } = await supabase
-        .from("attempts")
-        .select("student_id,mode,correct_count,wrong_count,total_count,accuracy,created_at")
-        .in("student_id", studentIds)
-        .order("created_at", { ascending:false });
-
-      if (error) { $("resultsBox").innerHTML = `<div class="bad">Fehler: ${escapeHtml(error.message)}</div>`; return; }
-
-      const byStudent = new Map();
-      for (const s of students) byStudent.set(s.id, []);
-      for (const a of (attempts || [])) byStudent.get(a.student_id)?.push(a);
-
-      const rows = students.map(s => {
-        const list = byStudent.get(s.id) || [];
-        const bestCorrect = list.reduce((m, x) => Math.max(m, x.correct_count), 0);
-        const last5 = list.slice(0,5);
-        const avgAcc5 = last5.length ? (last5.reduce((sum,x)=>sum+Number(x.accuracy ?? 0),0)/last5.length) : 0;
-        const answered5 = last5.reduce((sum,x)=>sum + Number(x.total_count ?? (x.correct_count + (x.wrong_count ?? 0))), 0);
-        return { id: s.id, name: s.display_name, bestCorrect, avgAcc5, answered5, n: list.length };
-      }).sort((a,b)=> b.bestCorrect - a.bestCorrect || b.avgAcc5 - a.avgAcc5 || a.name.localeCompare(b.name));
-
-      $("resultsBox").innerHTML = `
+      el.innerHTML = `
         <div class="row" style="justify-content:space-between; margin-bottom:10px;">
-          <div class="muted">Reset löscht gespeicherte Versuche (Attempts).</div>
-          <button class="ghost danger" id="resetClassBtn">Statistik der Klasse zurücksetzen</button>
+          <div class="muted">${title}</div>
+          <button class="ghost danger" id="${targetElId}_resetClassBtn">Statistik der Klasse zurücksetzen</button>
         </div>
-
         <table>
           <thead>
             <tr>
@@ -382,35 +353,120 @@
                 <td class="muted">${Math.round(r.avgAcc5*100)}%</td>
                 <td class="muted">${r.answered5}</td>
                 <td class="muted">${r.n}</td>
-                <td><button class="ghost danger" data-reset-student="${r.id}">Reset</button></td>
+                <td><button class="ghost danger" data-reset-student="${r.id}" data-rt="${targetElId}">Reset</button></td>
               </tr>
             `).join("")}
           </tbody>
         </table>
       `;
 
-      document.getElementById("resetClassBtn")?.addEventListener("click", async () => {
-        const ok = confirm("Wirklich ALLE Statistiken dieser Klasse löschen? (Kann nicht rückgängig gemacht werden)");
-        if (!ok) return;
-        const ids = students.map(s => s.id);
-        const { error } = await supabase.from("attempts").delete().in("student_id", ids);
-        if (error) return alert("Fehler: " + error.message);
-        alert("✅ Klassen-Statistik zurückgesetzt.");
-        await loadResultsForSelectedClass();
-      });
+      document.getElementById(`${targetElId}_resetClassBtn`)?.addEventListener("click", onResetClass);
 
-      document.querySelectorAll("[data-reset-student]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const sid = btn.getAttribute("data-reset-student");
-          if (!sid) return;
-          const ok = confirm("Wirklich die Statistik dieses Schülers löschen? (Kann nicht rückgängig gemacht werden)");
-          if (!ok) return;
-          const { error } = await supabase.from("attempts").delete().eq("student_id", sid);
-          if (error) return alert("Fehler: " + error.message);
-          alert("✅ Schüler-Statistik zurückgesetzt.");
-          await loadResultsForSelectedClass();
-        });
+      el.querySelectorAll("[data-reset-student]").forEach(btn => {
+        btn.addEventListener("click", () => onResetStudent(btn.getAttribute("data-reset-student")));
       });
+    }
+
+    async function computeRowsForGame(students, attempts, gameName){
+      const byStudent = new Map();
+      for (const s of students) byStudent.set(s.id, []);
+      for (const a of (attempts || [])) byStudent.get(a.student_id)?.push(a);
+
+      return students.map(s => {
+        const list = (byStudent.get(s.id) || []).filter(x => x.game === gameName);
+        const bestCorrect = list.reduce((m, x) => Math.max(m, x.correct_count), 0);
+        const last5 = list.slice(0,5);
+        const avgAcc5 = last5.length ? (last5.reduce((sum,x)=>sum+Number(x.accuracy ?? 0),0)/last5.length) : 0;
+        const answered5 = last5.reduce((sum,x)=>sum + Number(x.total_count ?? (x.correct_count + (x.wrong_count ?? 0))), 0);
+        return { id: s.id, name: s.display_name, bestCorrect, avgAcc5, answered5, n: list.length };
+      }).sort((a,b)=> b.bestCorrect - a.bestCorrect || b.avgAcc5 - a.avgAcc5 || a.name.localeCompare(b.name));
+    }
+
+    async function loadResultsForSelectedClass() {
+      const classId = classSelect.value;
+      $("resultsMath").textContent = "Lade Ergebnisse…";
+      $("resultsBinary").textContent = "Lade Ergebnisse…";
+      if (!classId) {
+        $("resultsMath").innerHTML = `<div class="muted">Bitte zuerst eine Klasse wählen.</div>`;
+        $("resultsBinary").innerHTML = `<div class="muted">Bitte zuerst eine Klasse wählen.</div>`;
+        return;
+      }
+
+      let students = studentsByClass.get(classId);
+      if (!students) {
+        const { data } = await supabase.from("students").select("id,display_name").eq("class_id", classId);
+        students = data || [];
+      }
+      if (!students.length) {
+        $("resultsMath").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`;
+        $("resultsBinary").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`;
+        return;
+      }
+
+      const studentIds = students.map(s => s.id);
+
+      const { data: attempts, error } = await supabase
+        .from("attempts")
+        .select("student_id,game,mode,correct_count,wrong_count,total_count,accuracy,created_at")
+        .in("student_id", studentIds)
+        .order("created_at", { ascending:false });
+
+      if (error) {
+        $("resultsMath").innerHTML = `<div class="bad">Fehler: ${escapeHtml(error.message)}</div>`;
+        $("resultsBinary").innerHTML = `<div class="bad">Fehler: ${escapeHtml(error.message)}</div>`;
+        return;
+      }
+
+      const rowsMath = await computeRowsForGame(students, attempts, "math");
+      const rowsBinary = await computeRowsForGame(students, attempts, "binary");
+
+      renderResultsTable(
+        "resultsMath",
+        "Mathematik (Einmaleins)",
+        rowsMath,
+        async () => {
+          const ok = confirm("Wirklich ALLE Mathe-Statistiken dieser Klasse löschen?");
+          if (!ok) return;
+          const ids = students.map(s => s.id);
+          const { error } = await supabase.from("attempts").delete().eq("game","math").in("student_id", ids);
+          if (error) return alert("Fehler: " + error.message);
+          alert("✅ Mathe-Statistik zurückgesetzt.");
+          await loadResultsForSelectedClass();
+        },
+        async (sid) => {
+          if (!sid) return;
+          const ok = confirm("Wirklich die Mathe-Statistik dieses Schülers löschen?");
+          if (!ok) return;
+          const { error } = await supabase.from("attempts").delete().eq("game","math").eq("student_id", sid);
+          if (error) return alert("Fehler: " + error.message);
+          alert("✅ Mathe-Statistik zurückgesetzt.");
+          await loadResultsForSelectedClass();
+        }
+      );
+
+      renderResultsTable(
+        "resultsBinary",
+        "Binärumwandlung",
+        rowsBinary,
+        async () => {
+          const ok = confirm("Wirklich ALLE Binär-Statistiken dieser Klasse löschen?");
+          if (!ok) return;
+          const ids = students.map(s => s.id);
+          const { error } = await supabase.from("attempts").delete().eq("game","binary").in("student_id", ids);
+          if (error) return alert("Fehler: " + error.message);
+          alert("✅ Binär-Statistik zurückgesetzt.");
+          await loadResultsForSelectedClass();
+        },
+        async (sid) => {
+          if (!sid) return;
+          const ok = confirm("Wirklich die Binär-Statistik dieses Schülers löschen?");
+          if (!ok) return;
+          const { error } = await supabase.from("attempts").delete().eq("game","binary").eq("student_id", sid);
+          if (error) return alert("Fehler: " + error.message);
+          alert("✅ Binär-Statistik zurückgesetzt.");
+          await loadResultsForSelectedClass();
+        }
+      );
     }
 
     $("loginBtn").addEventListener("click", async () => {
