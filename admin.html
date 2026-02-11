@@ -180,14 +180,16 @@
       }
 
       try {
-        const res = await fetch(FN_ADMIN_CREATE_TEACHER, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ email, password, display_name })
-        });
+          const res = await fetch(FN_ADMIN_CREATE_TEACHER, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+              "apikey": SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ email, password, display_name })
+          });
+
 
         let text = "";
         try { text = await res.text(); } catch {}
