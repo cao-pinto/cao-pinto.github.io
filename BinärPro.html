@@ -298,7 +298,8 @@
       // gap after 8 -> between 8 and 16 (i.e., after the "8" column)
       // weights are in descending order; for 8-bit: [128,64,32,16,8,4,2,1]
       // gap after 8 => after index where weight==8
-      const gapIndex = weights.findIndex(w => w === 8);
+      const gapIndex = weights.findIndex(w => w === 16);
+
 
       for (let idx=0; idx<weights.length; idx++){
         const w = weights[idx];
