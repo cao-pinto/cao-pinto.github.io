@@ -456,14 +456,13 @@
     }
 
     function parseHighscoreList(json){
-      // very robust: accept many shapes
       if (!json) return [];
+      if (Array.isArray(json.top10)) return json.top10;          // ✅ DEIN FORMAT
       if (Array.isArray(json.highscores)) return json.highscores;
       if (Array.isArray(json.items)) return json.items;
       if (Array.isArray(json.list)) return json.list;
       if (Array.isArray(json.top)) return json.top;
       if (Array.isArray(json.data)) return json.data;
-      // sometimes: { ok:true, highscores:{...} }
       if (json.highscores && Array.isArray(json.highscores.data)) return json.highscores.data;
       return [];
     }
