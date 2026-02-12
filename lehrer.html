@@ -101,6 +101,12 @@
       <h2 style="margin:0 0 10px;">4) Ergebnisse – Binärumwandlung</h2>
       <div class="muted">Bestwert richtig + Ø Accuracy (letzte 5) + beantwortet (letzte 5). Reset löscht Attempts.</div>
       <div id="resultsBinary" class="muted" style="margin-top:10px;">—</div>
+
+      <hr style="border:none;border-top:1px solid #e5e7eb; margin:14px 0;"/>
+
+      <h2 style="margin:0 0 10px;">5) Ergebnisse – Rechenbaum</h2>
+      <div class="muted">Bestwerte: gelöste Bäume (Variante 0–10 und 0–100). Reset löscht Attempts.</div>
+      <div id="resultsTree" class="muted" style="margin-top:10px;">—</div>
     </div>
   </div>
 
@@ -110,6 +116,7 @@
     const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
 
+    // Edge Functions (werden nur fürs Löschen von Auth-Usern benötigt)
     const FN_TEACHER_DELETE_STUDENT = "https://dnlencbwbbriijmzijci.functions.supabase.co/teacher_delete_student";
     const FN_TEACHER_DELETE_CLASS   = "https://dnlencbwbbriijmzijci.functions.supabase.co/teacher_delete_class";
 
@@ -155,7 +162,7 @@
       await loadTeacher();
       await loadClasses();
       await loadStudentsForSelectedClass();
-      await loadResultsForSelectedClass(); // lädt beide Spiele
+      await loadResultsForSelectedClass(); // lädt alle 3 Spiele
     }
 
     async function loadTeacher() {
@@ -211,7 +218,7 @@
             `Wirklich Klasse "${cname}" löschen?\n` +
             `- Alle Schüler dieser Klasse werden gelöscht\n` +
             `- Alle Logins (Auth-User) der Schüler werden gelöscht\n` +
-            `- Alle Ergebnisse (Mathe + Binär) werden gelöscht\n` +
+            `- Alle Ergebnisse (Mathe + Binär + Rechenbaum) werden gelöscht\n` +
             `(Kann nicht rückgängig gemacht werden)`
           );
           if (!ok) return;
@@ -290,7 +297,7 @@
           const name = btn.getAttribute("data-del-name") || "Schüler";
           if (!sid) return;
 
-          const ok = confirm(`Wirklich "${name}" löschen?\n- Login (Auth-User) wird gelöscht\n- Schüler wird gelöscht\n- alle Ergebnisse (Mathe + Binär) werden gelöscht\n(Das kann nicht rückgängig gemacht werden)`);
+          const ok = confirm(`Wirklich "${name}" löschen?\n- Login (Auth-User) wird gelöscht\n- Schüler wird gelöscht\n- alle Ergebnisse (Mathe + Binär + Rechenbaum) werden gelöscht\n(Das kann nicht rückgängig gemacht werden)`);
           if (!ok) return;
 
           const token = await getTokenOrAlert();
@@ -338,7 +345,7 @@
           <thead>
             <tr>
               <th>Schüler</th>
-              <th>Bestwert (richtig)</th>
+              <th>Bestwert</th>
               <th>Ø Accuracy (letzte 5)</th>
               <th>Beantwortet (letzte 5)</th>
               <th>Versuche</th>
@@ -350,7 +357,7 @@
               <tr>
                 <td><strong>${escapeHtml(r.name)}</strong></td>
                 <td>${r.bestCorrect}</td>
-                <td class="muted">${Math.round(r.avgAcc5*100)}%</td>
+                <td class="muted">${r.hasAcc ? (Math.round(r.avgAcc5*100) + "%") : "—"}</td>
                 <td class="muted">${r.answered5}</td>
                 <td class="muted">${r.n}</td>
                 <td><button class="ghost danger" data-reset-student="${r.id}" data-rt="${targetElId}">Reset</button></td>
@@ -367,28 +374,60 @@
       });
     }
 
-    async function computeRowsForGame(students, attempts, gameName){
-      const byStudent = new Map();
-      for (const s of students) byStudent.set(s.id, []);
-      for (const a of (attempts || [])) byStudent.get(a.student_id)?.push(a);
+    function renderTreeResults(targetElId, rows, onResetClass, onResetStudent){
+      const el = $(targetElId);
+      if (!rows.length) {
+        el.innerHTML = `<div class="muted">Noch keine Ergebnisse.</div>`;
+        return;
+      }
 
-      return students.map(s => {
-        const list = (byStudent.get(s.id) || []).filter(x => x.game === gameName);
-        const bestCorrect = list.reduce((m, x) => Math.max(m, x.correct_count), 0);
-        const last5 = list.slice(0,5);
-        const avgAcc5 = last5.length ? (last5.reduce((sum,x)=>sum+Number(x.accuracy ?? 0),0)/last5.length) : 0;
-        const answered5 = last5.reduce((sum,x)=>sum + Number(x.total_count ?? (x.correct_count + (x.wrong_count ?? 0))), 0);
-        return { id: s.id, name: s.display_name, bestCorrect, avgAcc5, answered5, n: list.length };
-      }).sort((a,b)=> b.bestCorrect - a.bestCorrect || b.avgAcc5 - a.avgAcc5 || a.name.localeCompare(b.name));
+      el.innerHTML = `
+        <div class="row" style="justify-content:space-between; margin-bottom:10px;">
+          <div class="muted">Bestwerte: 0–10 und 0–100 (gelöste Bäume)</div>
+          <button class="ghost danger" id="${targetElId}_resetClassBtn">Statistik der Klasse zurücksetzen</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Schüler</th>
+              <th>Best 0–10</th>
+              <th>Best 0–100</th>
+              <th>Versuche</th>
+              <th>Reset</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td><strong>${escapeHtml(r.name)}</strong></td>
+                <td>${r.best10}</td>
+                <td>${r.best100}</td>
+                <td class="muted">${r.n}</td>
+                <td><button class="ghost danger" data-reset-tree="${r.id}">Reset</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+
+      document.getElementById(`${targetElId}_resetClassBtn`)?.addEventListener("click", onResetClass);
+
+      el.querySelectorAll("[data-reset-tree]").forEach(btn => {
+        btn.addEventListener("click", () => onResetStudent(btn.getAttribute("data-reset-tree")));
+      });
     }
 
     async function loadResultsForSelectedClass() {
       const classId = classSelect.value;
       $("resultsMath").textContent = "Lade Ergebnisse…";
       $("resultsBinary").textContent = "Lade Ergebnisse…";
+      $("resultsTree").textContent = "Lade Ergebnisse…";
+
       if (!classId) {
         $("resultsMath").innerHTML = `<div class="muted">Bitte zuerst eine Klasse wählen.</div>`;
         $("resultsBinary").innerHTML = `<div class="muted">Bitte zuerst eine Klasse wählen.</div>`;
+        $("resultsTree").innerHTML = `<div class="muted">Bitte zuerst eine Klasse wählen.</div>`;
         return;
       }
 
@@ -400,6 +439,7 @@
       if (!students.length) {
         $("resultsMath").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`;
         $("resultsBinary").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`;
+        $("resultsTree").innerHTML = `<div class="muted">Noch keine Schüler – keine Ergebnisse.</div>`;
         return;
       }
 
@@ -414,11 +454,29 @@
       if (error) {
         $("resultsMath").innerHTML = `<div class="bad">Fehler: ${escapeHtml(error.message)}</div>`;
         $("resultsBinary").innerHTML = `<div class="bad">Fehler: ${escapeHtml(error.message)}</div>`;
+        $("resultsTree").innerHTML = `<div class="bad">Fehler: ${escapeHtml(error.message)}</div>`;
         return;
       }
 
-      const rowsMath = await computeRowsForGame(students, attempts, "math");
-      const rowsBinary = await computeRowsForGame(students, attempts, "binary");
+      // ---- Math & Binary rows (similar)
+      function computeRows(gameName){
+        const byStudent = new Map();
+        for (const s of students) byStudent.set(s.id, []);
+        for (const a of (attempts || [])) byStudent.get(a.student_id)?.push(a);
+
+        return students.map(s => {
+          const list = (byStudent.get(s.id) || []).filter(x => x.game === gameName);
+          const bestCorrect = list.reduce((m, x) => Math.max(m, x.correct_count), 0);
+          const last5 = list.slice(0,5);
+          const hasAcc = (gameName !== "tree"); // tree uses special rendering
+          const avgAcc5 = last5.length ? (last5.reduce((sum,x)=>sum+Number(x.accuracy ?? 0),0)/last5.length) : 0;
+          const answered5 = last5.reduce((sum,x)=>sum + Number(x.total_count ?? (x.correct_count + (x.wrong_count ?? 0))), 0);
+          return { id: s.id, name: s.display_name, bestCorrect, avgAcc5, answered5, n: list.length, hasAcc };
+        }).sort((a,b)=> b.bestCorrect - a.bestCorrect || b.avgAcc5 - a.avgAcc5 || a.name.localeCompare(b.name));
+      }
+
+      const rowsMath = computeRows("math");
+      const rowsBinary = computeRows("binary");
 
       renderResultsTable(
         "resultsMath",
@@ -464,6 +522,43 @@
           const { error } = await supabase.from("attempts").delete().eq("game","binary").eq("student_id", sid);
           if (error) return alert("Fehler: " + error.message);
           alert("✅ Binär-Statistik zurückgesetzt.");
+          await loadResultsForSelectedClass();
+        }
+      );
+
+      // ---- Tree rows (special: 2 modes)
+      const byStudentTree = new Map();
+      for (const s of students) byStudentTree.set(s.id, []);
+      for (const a of (attempts || [])) {
+        if (a.game === "tree") byStudentTree.get(a.student_id)?.push(a);
+      }
+
+      const rowsTree = students.map(s => {
+        const list = byStudentTree.get(s.id) || [];
+        const best10 = Math.max(0, ...list.filter(x => x.mode === "tree10").map(x => x.correct_count));
+        const best100 = Math.max(0, ...list.filter(x => x.mode === "tree100").map(x => x.correct_count));
+        return { id: s.id, name: s.display_name, best10, best100, n: list.length };
+      }).sort((a,b)=> (b.best10 + b.best100) - (a.best10 + a.best100) || a.name.localeCompare(b.name));
+
+      renderTreeResults(
+        "resultsTree",
+        rowsTree,
+        async () => {
+          const ok = confirm("Wirklich ALLE Rechenbaum-Ergebnisse dieser Klasse löschen?");
+          if (!ok) return;
+          const ids = students.map(s => s.id);
+          const { error } = await supabase.from("attempts").delete().eq("game","tree").in("student_id", ids);
+          if (error) return alert("Fehler: " + error.message);
+          alert("✅ Rechenbaum-Statistik zurückgesetzt.");
+          await loadResultsForSelectedClass();
+        },
+        async (sid) => {
+          if (!sid) return;
+          const ok = confirm("Wirklich die Rechenbaum-Statistik dieses Schülers löschen?");
+          if (!ok) return;
+          const { error } = await supabase.from("attempts").delete().eq("game","tree").eq("student_id", sid);
+          if (error) return alert("Fehler: " + error.message);
+          alert("✅ Rechenbaum-Statistik zurückgesetzt.");
           await loadResultsForSelectedClass();
         }
       );
