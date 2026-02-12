@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rechenbaum – 5 Minuten</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin:0; background:#f6f7fb; color:#111; }
+    .wrap { max-width: 1150px; margin:0 auto; padding:24px; }
+    .card { background:#fff; border-radius:16px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.08); margin-top:14px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+    h1 { margin:0; font-size:1.8rem; }
+    h2,h3 { margin:0 0 10px; }
+    .muted { opacity:.8; }
+    input, select { padding:10px 12px; border-radius:12px; border:1px solid #ccd2e1; font-size:1rem; }
+    input { min-width:240px; }
+    button { padding:10px 14px; border-radius:12px; border:0; background:#1f6feb; color:#fff; font-weight:900; cursor:pointer; }
+    button.ghost { background:#e5e7eb; color:#111; }
+    button.modeBtn { background:#e5e7eb; color:#111; }
+    button.modeBtn.active { background:#1f6feb; color:#fff; }
+    a.ghost { text-decoration:none; padding:10px 14px; border-radius:12px; background:#e5e7eb; color:#111; font-weight:900; }
+
+    .pill { padding:8px 12px; border-radius:999px; background:#eef2ff; font-weight:900; }
+    .ok { background:#ecfdf5; border:1px solid #10b98144; padding:10px; border-radius:12px; }
+    .bad { background:#fef2f2; border:1px solid #ef444444; padding:10px; border-radius:12px; }
+    .feedback { margin-top:12px; display:none; }
+
+    .startBar { display:flex; justify-content:center; margin-top:14px; }
+    .startBtn { padding:14px 22px; font-size:1.1rem; border-radius:16px; }
+
+    .twoCol { display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:12px; }
+    @media (max-width: 900px){ .twoCol { grid-template-columns: 1fr; } }
+
+    table { width:100%; border-collapse: collapse; margin-top:10px; }
+    th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e7eb; }
+    th { font-size:.9rem; opacity:.9; }
+
+    /* --- Tree drawing --- */
+    .treeWrap {
+      position: relative;
+      background:#0b2230;
+      border-radius:18px;
+      border:1px solid #0b2230;
+      overflow:hidden;
+      padding:16px;
+      min-height: 420px;
+    }
+
+    .node, .leaf, .op {
+      position:absolute;
+      transform: translate(-50%, -50%);
+      border: 3px solid #f5c400;
+      color: #f5c400;
+      font-weight:1000;
+      box-sizing:border-box;
+    }
+
+    .leaf {
+      width:70px; height:42px;
+      border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      background: transparent;
+      font-size:1.15rem;
+    }
+
+    .node {
+      width:92px; height:44px;
+      border-radius:6px;
+      background: transparent;
+      display:flex; align-items:center; justify-content:center;
+      padding:0;
+    }
+    .node input{
+      width:100%;
+      height:100%;
+      border:0;
+      outline:none;
+      text-align:center;
+      font-weight:1000;
+      font-size:1.05rem;
+      color:#f5c400;
+      background: transparent;
+      padding:0;
+    }
+    .node.good { background: rgba(16,185,129,.12); }
+    .node.bad { background: rgba(239,68,68,.10); }
+
+    .op {
+      width:42px; height:42px;
+      border-radius:999px;
+      display:flex; align-items:center; justify-content:center;
+      background: transparent;
+      font-size:1.2rem;
+      line-height:1;
+    }
+
+    .treeSvg {
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
+    }
+
+    .hintLine { margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div>
+          <h1>Rechenbaum 🌳 (5 Minuten)</h1>
+          <div class="muted">Löse in 5 Minuten so viele Rechenbäume wie möglich. Keine negativen Zahlen, keine Dezimalzahlen.</div>
+        </div>
+        <a class="ghost" href="./index.html">← Startseite</a>
+      </div>
+    </div>
+
+    <div class="card" id="loginCard">
+      <h2>Schüler-Code</h2>
+      <div class="row">
+        <input id="code" placeholder="Code (z.B. AB7K2)" style="text-transform:uppercase;" />
+        <button id="loginBtn">Anmelden</button>
+        <button class="ghost" id="logoutBtn" style="display:none;">Logout</button>
+      </div>
+      <div id="loginMsg" class="feedback"></div>
+      <div class="muted hintLine">Derselbe Code funktioniert auf mehreren Geräten.</div>
+    </div>
+
+    <div class="card" id="gameCard" style="display:none;">
+      <div class="row" style="justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="muted">Angemeldet als:</div>
+          <div style="font-weight:1000; font-size:1.2rem;" id="studentName">—</div>
+        </div>
+
+        <div class="row">
+          <button class="ghost" id="refreshHsBtn">↻ Highscore</button>
+        </div>
+      </div>
+
+      <div class="row" style="justify-content:space-between; margin-top:12px;">
+        <div class="row">
+          <button id="v10Btn" class="modeBtn active" type="button">Variante 0–10</button>
+          <button id="v100Btn" class="modeBtn" type="button">Variante 0–100</button>
+        </div>
+        <div class="row">
+          <span class="pill">Zeit: <span id="time">300</span>s</span>
+          <span class="pill">Bäume gelöst: <span id="trees">0</span></span>
+        </div>
+      </div>
+
+      <div class="startBar" id="startBar">
+        <button id="startBtn" class="startBtn" type="button">▶ START</button>
+      </div>
+
+      <div id="runArea" style="display:none;">
+        <div class="treeWrap" id="treeWrap">
+          <svg class="treeSvg" id="treeSvg"></svg>
+
+          <!-- Leaves (Top row) -->
+          <div class="leaf" id="L1"></div>
+          <div class="leaf" id="L2"></div>
+          <div class="leaf" id="L3"></div>
+          <div class="leaf" id="L4"></div>
+          <div class="leaf" id="L5"></div>
+          <div class="leaf" id="L6"></div>
+          <div class="leaf" id="L7"></div>
+
+          <!-- Operators -->
+          <div class="op" id="O1"></div>
+          <div class="op" id="O2"></div>
+          <div class="op" id="O3"></div>
+          <div class="op" id="O4"></div>
+          <div class="op" id="O5"></div>
+          <div class="op" id="O6"></div>
+
+          <!-- Result nodes (inputs) -->
+          <div class="node" id="N1"><input inputmode="numeric" autocomplete="off" /></div>
+          <div class="node" id="N2"><input inputmode="numeric" autocomplete="off" /></div>
+          <div class="node" id="N3"><input inputmode="numeric" autocomplete="off" /></div>
+          <div class="node" id="N4"><input inputmode="numeric" autocomplete="off" /></div>
+          <div class="node" id="N5"><input inputmode="numeric" autocomplete="off" /></div>
+          <div class="node" id="N6"><input inputmode="numeric" autocomplete="off" /></div>
+        </div>
+
+        <div id="fb" class="feedback"></div>
+
+        <div class="row" style="justify-content:space-between; margin-top:12px;">
+          <div class="muted">Tipp: Du kannst die Kästchen in beliebiger Reihenfolge ausfüllen.</div>
+          <button class="ghost" id="stopBtn" type="button">Stop</button>
+        </div>
+      </div>
+
+      <div class="twoCol" style="margin-top:14px;">
+        <div class="card" style="box-shadow:none; border:1px solid #e5e7eb; background:#fafafa;">
+          <h3>Highscore – Variante 0–10 (Top 10)</h3>
+          <div id="hs10" class="muted">—</div>
+        </div>
+        <div class="card" style="box-shadow:none; border:1px solid #e5e7eb; background:#fafafa;">
+          <h3>Highscore – Variante 0–100 (Top 10)</h3>
+          <div id="hs100" class="muted">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://dnlencbwbbriijmzijci.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_G8SaY8-oyn7TcP-uH6neuA_PNqUR1x0";
+
+    const FN_STUDENT_LOGIN = "https://dnlencbwbbriijmzijci.functions.supabase.co/student_login";
+    const FN_GET_HIGHSCORES_TREE = "https://dnlencbwbbriijmzijci.functions.supabase.co/get_highscores_tree";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const $ = (id) => document.getElementById(id);
+
+    const DURATION = 300;
+
+    let studentId = null;
+    let variant = "tree10"; // tree10 | tree100
+
+    let timer = null;
+    let t = DURATION;
+    let solved = 0;
+
+    // Layout positions (percentage)
+    const pos = {
+      L1:[10,12], L2:[26,12], L3:[38,12], L4:[52,12], L5:[66,12], L6:[76,12], L7:[90,12],
+      O1:[32,27], N1:[32,38],
+      O2:[71,27], N2:[71,38],
+      O3:[58,42], N3:[58,53],
+      O4:[77,60], N4:[77,71],
+      O5:[18,58], N5:[18,69],
+      O6:[50,78], N6:[50,89],
+    };
+
+    function place(el, key){
+      const [x,y] = pos[key];
+      el.style.left = x + "%";
+      el.style.top  = y + "%";
+    }
+
+    function setVariant(v){
+      variant = v;
+      $("v10Btn").classList.toggle("active", v === "tree10");
+      $("v100Btn").classList.toggle("active", v === "tree100");
+    }
+
+    function showMsg(el, ok, text) {
+      el.style.display = "block";
+      el.className = "feedback " + (ok ? "ok" : "bad");
+      el.innerHTML = text;
+    }
+
+    function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function pickOp(){ return ["+","-","×","÷"][randInt(0,3)]; }
+
+    function applyOp(a,b,op){
+      if (op === "+") return a + b;
+      if (op === "×") return a * b;
+      if (op === "-") return a - b;
+      if (op === "÷") return a / b;
+      return null;
+    }
+
+    // Generate a valid tree (all naturals, divisions integer, no negatives)
+    function generateTree(){
+      const maxLeaf = (variant === "tree10") ? 10 : 100;
+
+      for (let attempt=0; attempt<2000; attempt++){
+        const L = Array.from({length:7}, () => randInt(0, maxLeaf));
+
+        // Avoid 0 too often as divisor: we'll handle constraints below anyway.
+        const ops = Array.from({length:6}, () => pickOp());
+
+        const [a1,a2,a3,a4,a5,a6,a7] = L;
+        const [o1,o2,o3,o4,o5,o6] = ops;
+
+        // r1 = a2 o1 a3
+        const r1 = computeValid(a2,a3,o1);
+        if (r1 == null) continue;
+
+        // r2 = a5 o2 a6
+        const r2 = computeValid(a5,a6,o2);
+        if (r2 == null) continue;
+
+        // r3 = a4 o3 r2
+        const r3 = computeValid(a4,r2,o3);
+        if (r3 == null) continue;
+
+        // r4 = r3 o4 a7
+        const r4 = computeValid(r3,a7,o4);
+        if (r4 == null) continue;
+
+        // r5 = a1 o5 r1
+        const r5 = computeValid(a1,r1,o5);
+        if (r5 == null) continue;
+
+        // r6 = r5 o6 r4
+        const r6 = computeValid(r5,r4,o6);
+        if (r6 == null) continue;
+
+        // cap huge values a bit (so it's playable)
+        if ([r1,r2,r3,r4,r5,r6].some(x => x > 9999)) continue;
+
+        return { L, ops, R:[r1,r2,r3,r4,r5,r6] };
+      }
+
+      // fallback (should be very rare)
+      return { L:[2,8,4,6,9,3,5], ops:["÷","+","×","-","+","÷"], R:[2,12,72,67,4,0] };
+    }
+
+    function computeValid(a,b,op){
+      if (op === "+") return a + b;
+
+      if (op === "×") return a * b;
+
+      if (op === "-") {
+        if (a < b) return null;
+        return a - b;
+      }
+
+      if (op === "÷") {
+        if (b === 0) return null;
+        if (a % b !== 0) return null;
+        return a / b;
+      }
+
+      return null;
+    }
+
+    let current = null; // {L, ops, R}
+    let nodeCorrect = [false,false,false,false,false,false];
+
+    function clearInputs(){
+      nodeCorrect = [false,false,false,false,false,false];
+      for (let i=1;i<=6;i++){
+        const box = $("N"+i);
+        const inp = box.querySelector("input");
+        inp.value = "";
+        box.classList.remove("good","bad");
+      }
+    }
+
+    function renderTree(){
+      // position elements
+      ["L1","L2","L3","L4","L5","L6","L7","O1","O2","O3","O4","O5","O6","N1","N2","N3","N4","N5","N6"].forEach(id=>{
+        place($(id), id);
+      });
+
+      // fill leaves and ops
+      const [a1,a2,a3,a4,a5,a6,a7] = current.L;
+      $("L1").textContent=a1; $("L2").textContent=a2; $("L3").textContent=a3; $("L4").textContent=a4;
+      $("L5").textContent=a5; $("L6").textContent=a6; $("L7").textContent=a7;
+
+      const [o1,o2,o3,o4,o5,o6] = current.ops;
+      $("O1").textContent=o1; $("O2").textContent=o2; $("O3").textContent=o3;
+      $("O4").textContent=o4; $("O5").textContent=o5; $("O6").textContent=o6;
+
+      clearInputs();
+      drawLines();
+      attachInputHandlers();
+      $("fb").style.display="none";
+    }
+
+    function attachInputHandlers(){
+      for (let i=1;i<=6;i++){
+        const box = $("N"+i);
+        const inp = box.querySelector("input");
+        inp.oninput = () => validateNode(i);
+        inp.onkeydown = (e) => {
+          if (e.key === "Enter") e.preventDefault();
+        };
+      }
+      // focus first input for speed
+      $("N1").querySelector("input").focus();
+    }
+
+    function validateNode(i){
+      const correctVal = current.R[i-1];
+      const box = $("N"+i);
+      const inp = box.querySelector("input");
+      const raw = inp.value.trim();
+
+      if (!/^\d+$/.test(raw)) {
+        nodeCorrect[i-1] = false;
+        box.classList.remove("good");
+        if (raw.length) box.classList.add("bad"); else box.classList.remove("bad");
+        return;
+      }
+
+      const val = Number(raw);
+      if (val === correctVal) {
+        nodeCorrect[i-1] = true;
+        box.classList.add("good");
+        box.classList.remove("bad");
+      } else {
+        nodeCorrect[i-1] = false;
+        box.classList.remove("good");
+        box.classList.add("bad");
+      }
+
+      // if all correct -> next tree
+      if (nodeCorrect.every(Boolean)) {
+        solved++;
+        $("trees").textContent = String(solved);
+        showMsg($("fb"), true, `✅ Baum gelöst! Nächster Baum…`);
+        setTimeout(() => {
+          current = generateTree();
+          renderTree();
+        }, 450);
+      }
+    }
+
+    function drawLines(){
+      const svg = $("treeSvg");
+      svg.innerHTML = "";
+
+      const wrap = $("treeWrap");
+      const rect = wrap.getBoundingClientRect();
+
+      function centerOf(id){
+        const el = $(id);
+        const r = el.getBoundingClientRect();
+        return {
+          x: (r.left + r.width/2) - rect.left,
+          y: (r.top + r.height/2) - rect.top
+        };
+      }
+
+      function line(a,b){
+        const p1 = centerOf(a);
+        const p2 = centerOf(b);
+        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        l.setAttribute("x1", p1.x);
+        l.setAttribute("y1", p1.y);
+        l.setAttribute("x2", p2.x);
+        l.setAttribute("y2", p2.y);
+        l.setAttribute("stroke", "#f5c400");
+        l.setAttribute("stroke-width", "3");
+        l.setAttribute("stroke-linecap", "round");
+        svg.appendChild(l);
+      }
+
+      // matches the sample structure:
+      // L2 + L3 -> O1 -> N1
+      line("L2","O1"); line("L3","O1"); line("O1","N1");
+
+      // L5 + L6 -> O2 -> N2
+      line("L5","O2"); line("L6","O2"); line("O2","N2");
+
+      // L4 + N2 -> O3 -> N3
+      line("L4","O3"); line("N2","O3"); line("O3","N3");
+
+      // N3 + L7 -> O4 -> N4
+      line("N3","O4"); line("L7","O4"); line("O4","N4");
+
+      // L1 + N1 -> O5 -> N5
+      line("L1","O5"); line("N1","O5"); line("O5","N5");
+
+      // N5 + N4 -> O6 -> N6
+      line("N5","O6"); line("N4","O6"); line("O6","N6");
+    }
+
+    function tick(){
+      t -= 1;
+      $("time").textContent = String(t);
+      if (t <= 0) stop();
+    }
+
+    async function start(){
+      solved = 0;
+      $("trees").textContent = "0";
+      t = DURATION;
+      $("time").textContent = String(t);
+
+      $("startBar").style.display = "none";
+      $("runArea").style.display = "block";
+
+      current = generateTree();
+      renderTree();
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, 1000);
+    }
+
+    async function stop(){
+      if (timer) clearInterval(timer);
+      timer = null;
+
+      $("runArea").style.display = "none";
+      $("startBar").style.display = "flex";
+
+      // save as attempt: correct_count = solved trees
+      const { error } = await supabase.from("attempts").insert({
+        game: "tree",
+        student_id: studentId,
+        mode: variant,                 // tree10 / tree100
+        correct_count: solved,         // highscores use this
+        wrong_count: 0,
+        total_count: solved,
+        accuracy: null,
+        duration_seconds: DURATION
+      });
+
+      if (error) {
+        showMsg($("loginMsg"), false, `Speichern fehlgeschlagen: ${error.message}`);
+      } else {
+        showMsg($("loginMsg"), true, `✅ Gespeichert: <strong>${solved}</strong> gelöste Bäume (${variant === "tree10" ? "0–10" : "0–100"})`);
+      }
+
+      await loadHighscores();
+    }
+
+    function renderHS(targetId, list){
+      const el = $(targetId);
+      if (!list || !list.length) {
+        el.innerHTML = `<div class="muted">Noch keine Einträge.</div>`;
+        return;
+      }
+      el.innerHTML = `
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Bäume</th></tr></thead>
+          <tbody>
+            ${list.map((r,i)=>`
+              <tr>
+                <td class="muted">${i+1}</td>
+                <td><strong>${String(r.name || "—")}</strong></td>
+                <td>${Number(r.trees || 0)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadHighscores(){
+      $("hs10").textContent = "Lade…";
+      $("hs100").textContent = "Lade…";
+
+      try{
+        const res = await fetch(FN_GET_HIGHSCORES_TREE, {
+          method: "POST",
+          headers: { "Content-Type":"application/json", "apikey": SUPABASE_ANON_KEY },
+          body: JSON.stringify({})
+        });
+
+        const text = await res.text();
+        let json = null;
+        try { json = JSON.parse(text); } catch {}
+
+        if (!res.ok || !json?.ok){
+          $("hs10").innerHTML = `<div class="bad">Highscore-Fehler</div>`;
+          $("hs100").innerHTML = `<div class="bad">Highscore-Fehler</div>`;
+          return;
+        }
+
+        renderHS("hs10", json.v10);
+        renderHS("hs100", json.v100);
+      } catch (e){
+        $("hs10").innerHTML = `<div class="bad">Netzwerkfehler</div>`;
+        $("hs100").innerHTML = `<div class="bad">Netzwerkfehler</div>`;
+      }
+    }
+
+    async function codeLogin(){
+      const code = $("code").value.trim().toUpperCase();
+      if (!code) { showMsg($("loginMsg"), false, "Bitte Code eingeben."); return; }
+
+      try {
+        const res = await fetch(FN_STUDENT_LOGIN, {
+          method: "POST",
+          headers: { "Content-Type":"application/json", "apikey": SUPABASE_ANON_KEY },
+          body: JSON.stringify({ code })
+        });
+
+        const json = await res.json();
+        if (!res.ok) {
+          showMsg($("loginMsg"), false, `❌ ${json.error || "Fehler"}${json.details ? " – " + json.details : ""}`);
+          return;
+        }
+
+        const email = json.email;
+        studentId = json.student.id;
+        $("studentName").textContent = json.student.display_name;
+
+        const { error: signErr } = await supabase.auth.signInWithPassword({ email, password: code });
+        if (signErr) {
+          showMsg($("loginMsg"), false, `Login fehlgeschlagen: ${signErr.message}`);
+          return;
+        }
+
+        $("logoutBtn").style.display = "inline-block";
+        $("gameCard").style.display = "block";
+        $("startBar").style.display = "flex";
+        $("runArea").style.display = "none";
+
+        showMsg($("loginMsg"), true, `✅ Willkommen, <strong>${json.student.display_name}</strong>!`);
+        await loadHighscores();
+      } catch (e) {
+        showMsg($("loginMsg"), false, `Netzwerkfehler: ${String(e)}`);
+      }
+    }
+
+    async function logout(){
+      studentId = null;
+      $("logoutBtn").style.display = "none";
+      $("gameCard").style.display = "none";
+      await supabase.auth.signOut();
+      showMsg($("loginMsg"), true, "Abgemeldet.");
+    }
+
+    // events
+    $("loginBtn").addEventListener("click", codeLogin);
+    $("code").addEventListener("keydown", (e)=>{ if(e.key==="Enter") codeLogin(); });
+    $("logoutBtn").addEventListener("click", logout);
+
+    $("v10Btn").addEventListener("click", ()=> setVariant("tree10"));
+    $("v100Btn").addEventListener("click", ()=> setVariant("tree100"));
+
+    $("startBtn").addEventListener("click", start);
+    $("stopBtn").addEventListener("click", stop);
+
+    $("refreshHsBtn").addEventListener("click", loadHighscores);
+
+    // initial placement (so it renders nicely even before start)
+    ["L1","L2","L3","L4","L5","L6","L7","O1","O2","O3","O4","O5","O6","N1","N2","N3","N4","N5","N6"].forEach(id=>{
+      place($(id), id);
+    });
+
+    // redraw lines on resize
+    window.addEventListener("resize", ()=>{ if($("runArea").style.display !== "none") drawLines(); });
+
+    setVariant("tree10");
+  </script>
+</body>
+</html>
