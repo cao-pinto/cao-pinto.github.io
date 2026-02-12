@@ -3,49 +3,109 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Binärumwandlung – 90s</title>
+  <title>BinärPro – Binärumwandlung</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin:0; background:#f6f7fb; color:#111; }
-    .wrap { max-width: 1100px; margin:0 auto; padding:24px; }
+    .wrap { max-width: 1150px; margin:0 auto; padding:24px; }
     .card { background:#fff; border-radius:16px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.08); margin-top:14px; }
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; }
     h1 { margin:0; font-size:1.8rem; }
     h2,h3 { margin:0 0 10px; }
     .muted { opacity:.8; }
-    input { padding:10px 12px; border-radius:12px; border:1px solid #ccd2e1; font-size:1rem; min-width:240px; }
+    .pill { padding:8px 12px; border-radius:999px; background:#eef2ff; font-weight:900; }
+    input { padding:10px 12px; border-radius:12px; border:1px solid #ccd2e1; font-size:1rem; }
+    input[type="text"]{ min-width:240px; }
     button { padding:10px 14px; border-radius:12px; border:0; background:#1f6feb; color:#fff; font-weight:900; cursor:pointer; }
     button.ghost { background:#e5e7eb; color:#111; }
     a.ghost { text-decoration:none; padding:10px 14px; border-radius:12px; background:#e5e7eb; color:#111; font-weight:900; }
-    .pill { padding:8px 12px; border-radius:999px; background:#eef2ff; font-weight:900; }
+
     .ok { background:#ecfdf5; border:1px solid #10b98144; padding:10px; border-radius:12px; }
     .bad { background:#fef2f2; border:1px solid #ef444444; padding:10px; border-radius:12px; }
     .feedback { margin-top:12px; display:none; }
 
-    .startBar { display:flex; justify-content:center; margin-top:14px; }
-    .startBtn { padding:14px 22px; font-size:1.1rem; border-radius:16px; }
+    .quizBox{
+      background:#0b2230;
+      border-radius:18px;
+      border:1px solid #0b2230;
+      padding:18px;
+      color:#f5c400;
+    }
 
-    .statsRow { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:14px; }
-    .taskBox { background:#f9fafb; border:1px solid #e5e7eb; border-radius:16px; padding:14px; margin-top:12px; }
-    .task { font-size:1.3rem; font-weight:900; line-height:1.3; }
-    .task .val { font-size:1.6rem; font-weight:1000; display:inline-block; padding:2px 8px; border-radius:10px; background:#fff; border:1px solid #e5e7eb; }
+    .question{
+      font-size:1.35rem;
+      font-weight:1000;
+      margin:0 0 10px;
+      color:#f5c400;
+    }
 
-    .twoCol { display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:12px; }
-    @media (max-width: 820px){ .twoCol { grid-template-columns: 1fr; } }
+    .answerRow input{
+      background:#0b2230;
+      color:#f5c400;
+      border:2px solid #f5c400;
+      font-weight:1000;
+      letter-spacing:.5px;
+    }
 
-    table { width:100%; border-collapse: collapse; }
-    th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e7eb; }
-    th { font-size:.9rem; opacity:.9; }
+    .answerRow input::placeholder{ color:#f5c400aa; }
 
-    .helpGrid { display:grid; grid-template-columns: repeat(9, 1fr); gap:6px; }
-    .helpCell { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:8px; text-align:center; }
-    .helpTop { font-weight:1000; font-size:.9rem; }
-    .helpBottom { opacity:.8; font-size:.85rem; margin-top:3px; }
-    .tiny { font-size:.9rem; }
+    .sideGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      margin-top:14px;
+      align-items:start;
+    }
 
-    .sectionTitle { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
-    .miniBtn { padding:8px 10px; border-radius:10px; }
+    /* Default (breit): Highscore links, Hilfe rechts */
+    .hsCard{ order: 1; }
+    .helpCard{ order: 2; }
+
+    /* Schmal: Hilfe oben, Highscore darunter */
+    @media (max-width: 900px){
+      .sideGrid{ grid-template-columns: 1fr; }
+      .helpCard{ order: 1; }
+      .hsCard{ order: 2; }
+    }
+
+    table{ width:100%; border-collapse: collapse; margin-top:10px; }
+    th, td{ text-align:center; padding:8px; border:1px solid #e5e7eb; }
+    th{ background:#f3f4f6; }
+
+    .hintTableWrap{
+      overflow-x:auto;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+    }
+
+    .hintTable{
+      width:100%;
+      min-width:520px;
+      border-collapse: collapse;
+      font-weight:900;
+    }
+    .hintTable th{
+      background:#fff;
+      font-size:1.2rem;
+      padding:10px 12px;
+    }
+    .hintTable td{
+      font-size:1.15rem;
+      padding:10px 12px;
+    }
+
+    .exampleLine{
+      margin-top:12px;
+      font-size:1.3rem;
+      text-align:center;
+      font-weight:900;
+    }
+    .exampleLine span{ font-weight:1000; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .smallNote{ margin-top:10px; }
+
   </style>
 </head>
 <body>
@@ -53,9 +113,10 @@
     <div class="card">
       <div class="top">
         <div>
-          <h1>Binärumwandlung 🧠 (90s)</h1>
+          <h1>BinärPro 🔢</h1>
           <div class="muted">
-            90 Sekunden – Aufgaben werden mit der Zeit schwieriger. Bis Aufgabe 15 nur bis <strong>8 Bit</strong>, danach bis <strong>9 Bit</strong>.
+            90 Sekunden: Dezimalzahlen ↔ Binärzahlen umwandeln. Schwierigkeit steigt mit der Zeit.
+            Bis Aufgabe 15: max. 8 Bit, danach: max. 9 Bit.
           </div>
         </div>
         <a class="ghost" href="./index.html">← Startseite</a>
@@ -70,7 +131,7 @@
         <button class="ghost" id="logoutBtn" style="display:none;">Logout</button>
       </div>
       <div id="loginMsg" class="feedback"></div>
-      <div class="muted" style="margin-top:10px;">Derselbe Code funktioniert auf mehreren Geräten.</div>
+      <div class="muted smallNote">Tipp: Binär darfst du mit Leerzeichen gruppieren (z.B. <span class="mono">0100 10110</span>).</div>
     </div>
 
     <div class="card" id="gameCard" style="display:none;">
@@ -80,55 +141,54 @@
           <div style="font-weight:1000; font-size:1.2rem;" id="studentName">—</div>
         </div>
         <div class="row">
-          <button class="ghost miniBtn" id="refreshHsBtn" type="button">↻ Highscore</button>
+          <span class="pill">Zeit: <span id="time">90</span>s</span>
+          <span class="pill">Richtig: <span id="correct">0</span></span>
+          <span class="pill">Streak: <span id="streak">0</span></span>
+          <button class="ghost" id="refreshHsBtn">↻ Highscore</button>
         </div>
       </div>
 
-      <div class="startBar" id="startBar">
-        <button id="startBtn" class="startBtn" type="button">▶ START</button>
+      <div class="row" style="justify-content:center; margin-top:14px;">
+        <button id="startBtn" style="padding:14px 22px; font-size:1.1rem; border-radius:16px;">▶ START</button>
+        <button id="stopBtn" class="ghost" style="display:none;">Stop</button>
       </div>
 
-      <div id="runArea" style="display:none;">
-        <div class="statsRow">
-          <div class="pill">Zeit: <span id="time">90</span>s</div>
-          <div class="pill">Aufgabe: <span id="qnum">0</span></div>
-          <div class="pill">Richtig: <span id="right">0</span></div>
-          <div class="pill">Falsch: <span id="wrong">0</span></div>
-          <div class="pill">Accuracy: <span id="acc">0%</span></div>
-          <button class="ghost miniBtn" id="stopBtn" type="button">Stop</button>
+      <div id="runArea" style="display:none; margin-top:14px;">
+        <div class="quizBox">
+          <div class="question" id="question">—</div>
+          <div class="row answerRow">
+            <input id="answer" placeholder="Antwort eingeben…" autocomplete="off" />
+            <button id="submitBtn">OK</button>
+          </div>
+          <div id="fb" class="feedback"></div>
         </div>
 
-        <div class="taskBox">
-          <div id="task" class="task">—</div>
-          <div class="muted tiny" id="taskHint">—</div>
-        </div>
-
-        <div class="row" style="margin-top:12px;">
-          <input id="answer" autocomplete="off" placeholder="Antwort…" />
-          <button id="okBtn" type="button">OK</button>
-        </div>
-
-        <div id="fb" class="feedback"></div>
-      </div>
-
-      <div class="twoCol">
-        <div class="card" style="box-shadow:none; border:1px solid #e5e7eb; background:#fafafa;">
-          <div class="sectionTitle">
+        <div class="sideGrid">
+          <div class="card hsCard" style="box-shadow:none; border:1px solid #e5e7eb; background:#fafafa;">
             <h3>Highscore (Top 10)</h3>
+            <div class="muted">Nach Anzahl richtiger Antworten in 90 Sekunden.</div>
+            <div id="hsBox" class="muted">—</div>
           </div>
-          <div class="muted tiny">Sortierung: nach <strong>richtigen Antworten</strong> (ein Durchgang).</div>
-          <div id="hsBox" class="muted" style="margin-top:10px;">—</div>
-        </div>
 
-        <div class="card" style="box-shadow:none; border:1px solid #e5e7eb; background:#fafafa;">
-          <div class="sectionTitle">
-            <h3>Hilfe: Stellenwerte (9 Bit)</h3>
+          <div class="card helpCard" style="box-shadow:none; border:1px solid #e5e7eb; background:#fafafa;">
+            <h3>Hilfestellung: Stellenwerte (9 Bit)</h3>
+            <div class="hintTableWrap">
+              <table class="hintTable">
+                <tr>
+                  <th>256</th><th>128</th><th>64</th><th>32</th><th>16</th><th>8</th><th>4</th><th>2</th><th>1</th>
+                </tr>
+                <tr>
+                  <td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td>
+                </tr>
+              </table>
+            </div>
+            <div class="exampleLine">
+              128 + 16 + 4 + 2 = <span>150</span>
+            </div>
+            <div class="muted smallNote">
+              Hinweis: Führende Nullen sind erlaubt. Du darfst auch weniger Bits eingeben.
+            </div>
           </div>
-          <div class="muted tiny">
-            Du darfst Binärzahlen mit beliebig vielen führenden Nullen oder weniger Bits eingeben
-            (z.B. <strong>101</strong>, <strong>00000101</strong> oder <strong>0000 00101</strong>).
-          </div>
-          <div id="helpGrid" class="helpGrid" style="margin-top:10px;"></div>
         </div>
       </div>
     </div>
@@ -145,178 +205,199 @@
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const DURATION = 90;
     const $ = (id) => document.getElementById(id);
 
-    const loginMsg = $("loginMsg");
-    const fb = $("fb");
+    const DURATION = 90;
 
     let studentId = null;
-    let studentName = null;
-
+    let current = null; // { type: "d2b"|"b2d", dec:number, bin:string, bits:number }
     let t = DURATION;
     let timer = null;
 
-    let right = 0;
+    let correct = 0;
     let wrong = 0;
-    let qnum = 0;
+    let streak = 0;
+    let questions = 0;
 
-    let expectType = "";   // "bin" | "dec"
-    let targetValue = 0;   // immer dezimal gespeichert
-    let showBits = 8;      // 3..9 je nach Zeit + qnum
-    let lastShownBinary = "";
-
-    function showMsg(el, ok, text) {
+    function showMsg(el, ok, html){
       el.style.display = "block";
       el.className = "feedback " + (ok ? "ok" : "bad");
-      el.innerHTML = text;
+      el.innerHTML = html;
     }
 
-    function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
-
-    function updateUI(){
-      const total = right + wrong;
-      const acc = total > 0 ? right/total : 0;
-      $("time").textContent = String(t);
-      $("qnum").textContent = String(qnum);
-      $("right").textContent = String(right);
-      $("wrong").textContent = String(wrong);
-      $("acc").textContent = Math.round(acc*100) + "%";
-    }
-
-    function groupBits(s){
-      // nach je 4 bits ein Leerzeichen (von rechts)
-      const clean = String(s).replace(/\s+/g,"");
-      const parts = [];
-      for (let i = clean.length; i > 0; i -= 4) {
-        parts.unshift(clean.slice(Math.max(0, i-4), i));
-      }
-      return parts.join(" ");
-    }
+    function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
     function toBin(n, bits){
       let s = n.toString(2);
-      if (s.length < bits) s = "0".repeat(bits - s.length) + s;
+      if (bits) s = s.padStart(bits, "0");
       return s;
     }
 
-    function bitsForNow(){
-      // mit Zeit wird es schwieriger: 3..9
-      const elapsed = DURATION - t;                 // 0..90
-      const dynBits = Math.min(9, 3 + Math.floor(elapsed / 10)); // ca. alle 10s +1 bit
-      const cap = (qnum < 15) ? 8 : 9;
-      return Math.min(dynBits, cap);
+    function group4(bin){
+      // Abstand nach je 4 Bits (von rechts)
+      const s = bin.replace(/\s+/g,"");
+      let out = "";
+      for (let i=0;i<s.length;i++){
+        out += s[i];
+        const posFromEnd = s.length - i - 1;
+        if (posFromEnd % 4 === 0 && i !== s.length - 1) out += " ";
+      }
+      return out;
     }
 
-    function newTask(){
-      showBits = bitsForNow();
+    function normalizeBinInput(s){
+      return s.replace(/\s+/g, "").replace(/^0+(?=\d)/, ""); // spaces weg, führende nullen weg (aber nicht alles löschen)
+    }
 
-      const dir = Math.random() < 0.5 ? "binToDec" : "decToBin";
-      const maxVal = (1 << showBits) - 1;
-      targetValue = randInt(0, maxVal);
+    function generateQuestion(){
+      questions++;
 
-      if (dir === "binToDec") {
-        expectType = "dec";
-        const binShown = toBin(targetValue, showBits);
-        lastShownBinary = groupBits(binShown);
+      // bis Aufgabe 15: max 8 Bit, danach max 9 Bit
+      const maxBits = (questions <= 15) ? 8 : 9;
 
-        $("task").innerHTML =
-          `Wandle <span class="val">${lastShownBinary}</span> <span class="muted">(binär)</span> nach <strong>Dezimal</strong> um:`;
-        $("taskHint").textContent = `Antwort als Dezimalzahl (0–${maxVal}) eingeben.`;
-        $("answer").placeholder = "Dezimalzahl…";
-      } else {
-        expectType = "bin";
-        lastShownBinary = ""; // wird nur für Feedback gebraucht
+      // Schwierigkeit steigt mit Zeit: je weniger Zeit, desto höhere Bits wahrscheinlicher
+      const progress = 1 - (t / DURATION); // 0..1
+      const minBits = 3 + Math.floor(progress * 4); // 3..7
+      const bits = Math.max(3, Math.min(maxBits, randInt(minBits, maxBits)));
 
-        $("task").innerHTML =
-          `Wandle <span class="val">${targetValue}</span> <span class="muted">(dezimal)</span> nach <strong>Binär</strong> um:`;
-        $("taskHint").textContent = `Antwort als Binärzahl (nur 0/1). Länge egal (mit/ohne führende Nullen).`;
-        $("answer").placeholder = "Binärzahl…";
-      }
+      const maxDec = (1 << bits) - 1;
+      const dec = randInt(0, maxDec);
+      const bin = toBin(dec, bits);
 
+      const type = Math.random() < 0.5 ? "d2b" : "b2d";
+
+      return { type, dec, bin, bits };
+    }
+
+    function renderQuestion(){
+      current = generateQuestion();
       $("answer").value = "";
       $("answer").focus();
-    }
 
-    function check(){
-      const raw = $("answer").value.trim();
-      if (!raw) { showMsg(fb, false, "⚠️ Bitte eine Antwort eingeben."); return; }
-
-      if (expectType === "dec") {
-        if (!/^\d+$/.test(raw)) { showMsg(fb, false, "⚠️ Bitte nur Ziffern eingeben."); return; }
-        const ans = Number(raw);
-        if (ans === targetValue) {
-          right++;
-          showMsg(fb, true, "✅ Richtig!");
-        } else {
-          wrong++;
-          showMsg(fb, false, `❌ Falsch. Richtig wäre <strong>${targetValue}</strong>.`);
-        }
+      if (current.type === "d2b"){
+        $("question").textContent = `Wandle ${current.dec} ins Binärsystem um.`;
+        $("answer").placeholder = "z.B. 101 oder 0000 0101";
       } else {
-        // Binärantwort (Leerzeichen erlauben)
-        const cleaned = raw.replace(/\s+/g, "");
-        if (!/^[01]+$/.test(cleaned)) { showMsg(fb, false, "⚠️ Bitte nur 0 und 1 (optional mit Leerzeichen)."); return; }
-
-        const ans = parseInt(cleaned, 2);
-        if (ans === targetValue) {
-          right++;
-          showMsg(fb, true, "✅ Richtig!");
-        } else {
-          wrong++;
-          const correctBin = groupBits(toBin(targetValue, showBits));
-          showMsg(fb, false, `❌ Falsch. Richtig wäre z.B. <strong>${correctBin}</strong> (oder ohne führende Nullen).`);
-        }
+        $("question").textContent = `Wandle ${group4(current.bin)} ins Dezimalsystem um.`;
+        $("answer").placeholder = "z.B. 150";
       }
-
-      qnum++;
-      updateUI();
-      newTask();
+      $("fb").style.display = "none";
     }
 
     function tick(){
       t -= 1;
-      updateUI();
-      if (t <= 0) stop();
+      $("time").textContent = String(t);
+      if (t <= 0) stopGame(true);
     }
 
-    async function startRun(){
-      t = DURATION; right = 0; wrong = 0; qnum = 0;
-      fb.style.display = "none";
-      $("startBar").style.display = "none";
+    function applyStreakBonus(){
+      if (streak > 0 && streak % 3 === 0){
+        t += 15;
+        $("time").textContent = String(t);
+        showMsg($("fb"), true, `🔥 Streak ${streak}! <strong>+15 Sekunden</strong>`);
+      }
+    }
+
+    function checkAnswer(){
+      const input = $("answer").value.trim();
+      if (!input) return;
+
+      if (current.type === "d2b"){
+        // Input as binary, allow spaces and leading zeros
+        const clean = normalizeBinInput(input);
+        if (!/^[01]+$/.test(clean)) {
+          wrong++; streak = 0;
+          $("streak").textContent = String(streak);
+          showMsg($("fb"), false, "❌ Bitte nur 0 und 1 eingeben.");
+          return;
+        }
+
+        const val = parseInt(clean, 2);
+        if (val === current.dec){
+          correct++; streak++;
+          $("correct").textContent = String(correct);
+          $("streak").textContent = String(streak);
+          showMsg($("fb"), true, `✅ Richtig! ${group4(current.bin)} = ${current.dec}`);
+          applyStreakBonus();
+          renderQuestion();
+        } else {
+          wrong++; streak = 0;
+          $("streak").textContent = String(streak);
+          showMsg($("fb"), false, `❌ Falsch. Tipp: Prüfe die Stellenwerte. (${group4(current.bin)} wäre richtig)`);
+        }
+      } else {
+        // Input as decimal
+        if (!/^\d+$/.test(input)){
+          wrong++; streak = 0;
+          $("streak").textContent = String(streak);
+          showMsg($("fb"), false, "❌ Bitte eine Dezimalzahl eingeben (nur Ziffern).");
+          return;
+        }
+        const val = Number(input);
+        if (val === current.dec){
+          correct++; streak++;
+          $("correct").textContent = String(correct);
+          $("streak").textContent = String(streak);
+          showMsg($("fb"), true, `✅ Richtig! ${group4(current.bin)} = ${current.dec}`);
+          applyStreakBonus();
+          renderQuestion();
+        } else {
+          wrong++; streak = 0;
+          $("streak").textContent = String(streak);
+          showMsg($("fb"), false, `❌ Falsch. ${group4(current.bin)} = ${current.dec}`);
+        }
+      }
+    }
+
+    async function startGame(){
+      correct = 0;
+      wrong = 0;
+      streak = 0;
+      questions = 0;
+
+      t = DURATION;
+      $("time").textContent = String(t);
+      $("correct").textContent = "0";
+      $("streak").textContent = "0";
+
       $("runArea").style.display = "block";
-      updateUI();
-      newTask();
+      $("stopBtn").style.display = "inline-block";
+      $("startBtn").disabled = true;
+
+      renderQuestion();
+
       if (timer) clearInterval(timer);
       timer = setInterval(tick, 1000);
     }
 
-    async function stop(){
+    async function stopGame(timeUp=false){
       if (timer) clearInterval(timer);
       timer = null;
 
-      $("runArea").style.display = "none";
-      $("startBar").style.display = "flex";
+      $("stopBtn").style.display = "none";
+      $("startBtn").disabled = false;
 
-      const total = right + wrong;
-      const accuracy = total > 0 ? (right / total) : 0;
+      // Speichern (game "binary", mode "mix")
+      // accuracy NOT NULL? -> setzen wir immer
+      const total = correct + wrong;
+      const accuracy = total > 0 ? (correct / total) : 0;
 
       const { error } = await supabase.from("attempts").insert({
         game: "binary",
         student_id: studentId,
         mode: "mix",
-        correct_count: right,
+        correct_count: correct,
         wrong_count: wrong,
         total_count: total,
         accuracy: accuracy,
         duration_seconds: DURATION
       });
 
-      if (error) {
-        showMsg(loginMsg, false, `Speichern fehlgeschlagen: ${error.message}`);
+      if (error){
+        showMsg($("loginMsg"), false, `Speichern fehlgeschlagen: ${error.message}`);
       } else {
-        showMsg(loginMsg, true,
-          `✅ Gespeichert: Richtig <strong>${right}</strong>, Falsch <strong>${wrong}</strong>, Accuracy <strong>${Math.round(accuracy*100)}%</strong>`
-        );
+        const txt = timeUp ? "⏱️ Zeit abgelaufen." : "⏹️ Gestoppt.";
+        showMsg($("loginMsg"), true, `✅ ${txt} Gespeichert: <strong>${correct}</strong> richtig.`);
       }
 
       await loadHighscores();
@@ -324,7 +405,7 @@
 
     function renderHS(list){
       const el = $("hsBox");
-      if (!list || !list.length) {
+      if (!list || !list.length){
         el.innerHTML = `<div class="muted">Noch keine Einträge.</div>`;
         return;
       }
@@ -332,11 +413,11 @@
         <table>
           <thead><tr><th>#</th><th>Name</th><th>Richtig</th></tr></thead>
           <tbody>
-            ${list.map((r, i) => `
+            ${list.map((r,i)=>`
               <tr>
                 <td class="muted">${i+1}</td>
                 <td><strong>${String(r.name || "—")}</strong></td>
-                <td>${Number(r.correct || 0)}</td>
+                <td>${Number(r.correct || r.score || r.correct_count || 0)}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -346,48 +427,35 @@
 
     async function loadHighscores(){
       $("hsBox").textContent = "Lade…";
-      try {
+      try{
         const res = await fetch(FN_GET_HIGHSCORES_BINARY, {
           method: "POST",
           headers: { "Content-Type":"application/json", "apikey": SUPABASE_ANON_KEY },
           body: JSON.stringify({})
         });
-
         const text = await res.text();
         let json = null;
         try { json = JSON.parse(text); } catch {}
 
-        if (!res.ok) {
-          $("hsBox").innerHTML = `<div class="bad">Highscore-Fehler: HTTP ${res.status}<br/><span class="muted tiny">${(text || "").slice(0,180)}</span></div>`;
+        if (!res.ok || !json?.ok){
+          $("hsBox").innerHTML = `<div class="bad">Highscore-Fehler</div>`;
           return;
         }
-        if (!json?.ok) {
-          $("hsBox").innerHTML = `<div class="bad">Highscore-Fehler: ${json?.error || "unbekannt"}</div>`;
-          return;
-        }
-        renderHS(json.top10);
-      } catch (e) {
-        $("hsBox").innerHTML = `<div class="bad">Netzwerkfehler: ${String(e)}</div>`;
+
+        // akzeptiere verschiedene Rückgabeformate
+        const list = json.highscores || json.items || json.list || json.top || json.data || [];
+        renderHS(list);
+      } catch {
+        $("hsBox").innerHTML = `<div class="bad">Netzwerkfehler</div>`;
       }
     }
 
-    function renderHelp(){
-      // 9 Bit: 256..1 (2^8..2^0)
-      const weights = [];
-      for (let i=8;i>=0;i--) weights.push(2**i);
-      $("helpGrid").innerHTML = weights.map(w => `
-        <div class="helpCell">
-          <div class="helpTop">${w}</div>
-          <div class="helpBottom">${w.toString(2)}</div>
-        </div>
-      `).join("");
-    }
-
+    // ---- Login ----
     async function codeLogin(){
       const code = $("code").value.trim().toUpperCase();
-      if (!code) { showMsg(loginMsg, false, "Bitte Code eingeben."); return; }
+      if (!code) { showMsg($("loginMsg"), false, "Bitte Code eingeben."); return; }
 
-      try {
+      try{
         const res = await fetch(FN_STUDENT_LOGIN, {
           method: "POST",
           headers: { "Content-Type":"application/json", "apikey": SUPABASE_ANON_KEY },
@@ -395,47 +463,51 @@
         });
 
         const json = await res.json();
-        if (!res.ok) { showMsg(loginMsg, false, `❌ ${json.error || "Fehler"}${json.details ? " – " + json.details : ""}`); return; }
+        if (!res.ok){
+          showMsg($("loginMsg"), false, `❌ ${json.error || "Fehler"}${json.details ? " – " + json.details : ""}`);
+          return;
+        }
 
-        const email = json.email;
         studentId = json.student.id;
-        studentName = json.student.display_name;
+        $("studentName").textContent = json.student.display_name;
 
-        const { error: signErr } = await supabase.auth.signInWithPassword({ email, password: code });
-        if (signErr) { showMsg(loginMsg, false, `Login fehlgeschlagen: ${signErr.message}`); return; }
+        const { error: signErr } = await supabase.auth.signInWithPassword({ email: json.email, password: code });
+        if (signErr){
+          showMsg($("loginMsg"), false, `Login fehlgeschlagen: ${signErr.message}`);
+          return;
+        }
 
-        $("studentName").textContent = studentName;
         $("logoutBtn").style.display = "inline-block";
         $("gameCard").style.display = "block";
-        $("startBar").style.display = "flex";
-        $("runArea").style.display = "none";
+        showMsg($("loginMsg"), true, `✅ Willkommen, <strong>${json.student.display_name}</strong>!`);
 
-        showMsg(loginMsg, true, `✅ Willkommen, <strong>${studentName}</strong>!`);
-        renderHelp();
         await loadHighscores();
-      } catch (e) {
-        showMsg(loginMsg, false, `Netzwerkfehler: ${String(e)}`);
+      } catch(e){
+        showMsg($("loginMsg"), false, `Netzwerkfehler: ${String(e)}`);
       }
     }
 
     async function logout(){
-      studentId = null; studentName = null;
+      studentId = null;
       $("logoutBtn").style.display = "none";
       $("gameCard").style.display = "none";
+      $("runArea").style.display = "none";
+      if (timer) clearInterval(timer);
+      timer = null;
       await supabase.auth.signOut();
-      showMsg(loginMsg, true, "Abgemeldet.");
+      showMsg($("loginMsg"), true, "Abgemeldet.");
     }
 
-    // Events
+    // events
     $("loginBtn").addEventListener("click", codeLogin);
-    $("code").addEventListener("keydown", (e) => { if (e.key === "Enter") codeLogin(); });
+    $("code").addEventListener("keydown", (e)=>{ if (e.key==="Enter") codeLogin(); });
     $("logoutBtn").addEventListener("click", logout);
 
-    $("startBtn").addEventListener("click", startRun);
-    $("okBtn").addEventListener("click", check);
-    $("stopBtn").addEventListener("click", stop);
+    $("startBtn").addEventListener("click", startGame);
+    $("stopBtn").addEventListener("click", ()=> stopGame(false));
 
-    $("answer").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
+    $("submitBtn").addEventListener("click", checkAnswer);
+    $("answer").addEventListener("keydown", (e)=>{ if (e.key==="Enter") checkAnswer(); });
 
     $("refreshHsBtn").addEventListener("click", loadHighscores);
   </script>
