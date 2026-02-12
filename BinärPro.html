@@ -94,6 +94,12 @@
       padding:10px 12px;
     }
 
+    /* kleiner Abstand zwischen 8 und 16 */
+    .gapAfter8{
+      border-right-width:10px !important;
+      border-right-color:#fff !important; /* wirkt wie spacing */
+    }
+
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
     .smallNote{ margin-top:10px; }
   </style>
@@ -158,7 +164,7 @@
         <div class="sideGrid">
           <div class="card hsCard" style="box-shadow:none; border:1px solid #e5e7eb; background:#fafafa;">
             <h3>Highscore (Top 10)</h3>
-            <div class="muted">Nach Anzahl richtiger Antworten in 90 Sekunden.</div>
+            <div class="muted">Nach Anzahl richtiger Antworten in 90 Sekunden (beste Leistung pro Name).</div>
             <div id="hsBox" class="muted">—</div>
           </div>
 
@@ -194,9 +200,9 @@
 
     let studentId = null;
 
-    let current = null;     // { type:"b2d"|"d2b", dec:number, bin8:string, bits:number }
-    let currentBits = 8;    // switches to 9 after question 15
-    let helpFrozen = false; // after question 9: freeze until bits jump
+    let current = null;
+    let currentBits = 8;
+    let helpFrozen = false; // after question 9 freeze until bits jump
 
     let t = DURATION;
     let timer = null;
@@ -223,7 +229,6 @@
       return n.toString(2).padStart(bits, "0");
     }
 
-    // group from RIGHT in blocks of 4: "xxxx xxxx" or "x xxxx xxxx"
     function group4(bin){
       const s = bin.replace(/\s+/g,"");
       let out = "";
@@ -243,27 +248,38 @@
       return (q <= 15) ? 8 : 9;
     }
 
+    function maxForQuestion(q){
+      // NEW requested bands:
+      // 1-3: <8
+      // 4-6: <32
+      // 7-9: <64
+      // 10-12: <128
+      // 13-15: <256
+      if (q <= 3) return 7;
+      if (q <= 6) return 31;
+      if (q <= 9) return 63;
+      if (q <= 12) return 127;
+      if (q <= 15) return 255;
+      return null; // handled by ramp for 9-bit
+    }
+
     function pickDecForDifficulty(q, bits){
-      // NEW: fix your request:
-      // q 1-5: 0..63
-      // q 6-9: 0..160  (always <161)
-      // q 10-15: 0..255
-      // q 16+: ramp 255..511 (9-bit)
       const maxByBits = (1 << bits) - 1;
 
       let max;
-      if (q <= 5) max = 63;
-      else if (q <= 9) max = 160;
-      else if (q <= 15) max = 255;
-      else {
+      const bandMax = maxForQuestion(q);
+      if (bandMax !== null){
+        max = Math.min(bandMax, maxByBits);
+      } else {
+        // 16+: ramp 255..511 (9-bit)
         const ramp = Math.min(1, (q - 16) / 12);
         max = Math.round(255 + (maxByBits - 255) * ramp);
         max = Math.min(max, maxByBits);
       }
 
-      let dec = randInt(0, Math.min(max, maxByBits));
-      for (let i=0;i<10 && dec === lastDec; i++){
-        dec = randInt(0, Math.min(max, maxByBits));
+      let dec = randInt(0, max);
+      for (let i=0;i<12 && dec === lastDec; i++){
+        dec = randInt(0, max);
       }
       lastDec = dec;
       return dec;
@@ -277,29 +293,33 @@
       for (let i=bits-1; i>=0; i--) weights.push(1<<i);
 
       const trH = document.createElement("tr");
-      for (const w of weights){
+      const trB = document.createElement("tr");
+
+      // gap after 8 -> between 8 and 16 (i.e., after the "8" column)
+      // weights are in descending order; for 8-bit: [128,64,32,16,8,4,2,1]
+      // gap after 8 => after index where weight==8
+      const gapIndex = weights.findIndex(w => w === 8);
+
+      for (let idx=0; idx<weights.length; idx++){
+        const w = weights[idx];
+
         const th = document.createElement("th");
         th.textContent = String(w);
+        if (idx === gapIndex) th.classList.add("gapAfter8");
         trH.appendChild(th);
-      }
-      table.appendChild(trH);
 
-      const trB = document.createElement("tr");
-      if (binForRow){
-        const s = binForRow.replace(/\s+/g,"").padStart(bits,"0").slice(-bits);
-        for (let i=0;i<bits;i++){
-          const td = document.createElement("td");
-          td.textContent = s[i];
-          trB.appendChild(td);
-        }
-      } else {
-        // static row: all zeros (neutral)
-        for (let i=0;i<bits;i++){
-          const td = document.createElement("td");
+        const td = document.createElement("td");
+        if (binForRow){
+          const s = binForRow.replace(/\s+/g,"").padStart(bits,"0").slice(-bits);
+          td.textContent = s[idx];
+        } else {
           td.textContent = "0";
-          trB.appendChild(td);
         }
+        if (idx === gapIndex) td.classList.add("gapAfter8");
+        trB.appendChild(td);
       }
+
+      table.appendChild(trH);
       table.appendChild(trB);
 
       $("helpTitle").textContent = `Hilfestellung: Stellenwerte (${bits} Bit)`;
@@ -311,18 +331,18 @@
 
       if (newBits !== currentBits){
         currentBits = newBits;
-        helpFrozen = false;             // allow rebuilding once on jump
-        updateHelpTable(currentBits);   // static on new bits
+        helpFrozen = false;
+        updateHelpTable(currentBits);
         helpFrozen = true;
       }
 
-      // NEW: first 9 questions ALWAYS b2d
-      const type = (questions <= 9) ? "b2d" : (Math.random() < 0.5 ? "b2d" : "d2b");
+      // NEW: tasks 1-5 always b2d
+      const type = (questions <= 5) ? "b2d" : (Math.random() < 0.5 ? "b2d" : "d2b");
 
       const dec = pickDecForDifficulty(questions, currentBits);
       const bin = toBin(dec, currentBits);
 
-      // binary display in question always 8-bit (requested)
+      // binary display in question always 8-bit
       const bin8Display = toBin(dec, 8);
 
       return { type, dec, bin, bin8Display, bits: currentBits };
@@ -338,8 +358,7 @@
 
       $("fb").style.display = "none";
 
-      // HELP behavior:
-      // show current binary row until question 9
+      // HELP: show current binary row until question 9
       if (questions <= 9){
         updateHelpTable(8, current.bin8Display);
         helpFrozen = false;
@@ -352,7 +371,7 @@
 
       if (current.type === "b2d"){
         $("question").textContent = `Wandle ${group4(current.bin8Display)} ins Dezimalsystem um.`;
-        ans.placeholder = "z.B. 150";
+        ans.placeholder = "z.B. 42";
       } else {
         $("question").textContent = `Wandle ${current.dec} ins Binärsystem um.`;
         ans.placeholder = "z.B. 101 oder 0000 0101";
@@ -429,7 +448,7 @@
       timer = null;
 
       setRunningUI(false);
-      showQuiz(false); // black question box disappears
+      showQuiz(false);
 
       const total = correct + wrong;
       const accuracy = total > 0 ? (correct / total) : 0;
@@ -457,7 +476,7 @@
 
     function parseHighscoreList(json){
       if (!json) return [];
-      if (Array.isArray(json.top10)) return json.top10;          // ✅ DEIN FORMAT
+      if (Array.isArray(json.top10)) return json.top10; // your format
       if (Array.isArray(json.highscores)) return json.highscores;
       if (Array.isArray(json.items)) return json.items;
       if (Array.isArray(json.list)) return json.list;
@@ -467,21 +486,35 @@
       return [];
     }
 
+    function dedupeBestByName(list){
+      // keep best "correct" per name, stable-ish
+      const best = new Map(); // name -> {name, correct}
+      for (const r of list){
+        const name = String(r.name ?? r.display_name ?? "—");
+        const correct = Number(r.correct ?? r.score ?? r.correct_count ?? 0);
+        const prev = best.get(name);
+        if (!prev || correct > prev.correct) best.set(name, { name, correct });
+      }
+      return Array.from(best.values()).sort((a,b)=> b.correct - a.correct || a.name.localeCompare(b.name)).slice(0,10);
+    }
+
     function renderHS(list){
       const el = $("hsBox");
-      if (!list || !list.length){
-        el.innerHTML = `<div class="muted">Noch keine Einträge (oder Highscore-Format passt nicht).</div>`;
+      const filtered = dedupeBestByName(list || []);
+
+      if (!filtered.length){
+        el.innerHTML = `<div class="muted">Noch keine Einträge.</div>`;
         return;
       }
       el.innerHTML = `
         <table>
           <thead><tr><th>#</th><th>Name</th><th>Richtig</th></tr></thead>
           <tbody>
-            ${list.map((r,i)=>`
+            ${filtered.map((r,i)=>`
               <tr>
                 <td class="muted">${i+1}</td>
-                <td><strong>${String(r.name ?? r.display_name ?? "—")}</strong></td>
-                <td>${Number(r.correct ?? r.score ?? r.correct_count ?? 0)}</td>
+                <td><strong>${String(r.name)}</strong></td>
+                <td>${Number(r.correct)}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -499,14 +532,12 @@
         });
 
         const json = await res.json().catch(()=>null);
-
         if (!res.ok || !json?.ok){
           $("hsBox").innerHTML = `<div class="bad">Highscore-Fehler</div>`;
           return;
         }
 
-        const list = parseHighscoreList(json);
-        renderHS(list);
+        renderHS(parseHighscoreList(json));
       } catch {
         $("hsBox").innerHTML = `<div class="bad">Netzwerkfehler</div>`;
       }
@@ -523,33 +554,28 @@
         const clean = normalizeBinInput(input);
 
         if (!/^[01\s]+$/.test(input) || !/^[01]+$/.test(clean)){
-          wrong++;
-          resetStreak();
+          wrong++; resetStreak();
           ans.classList.add("wrongInput");
           showMsg($("fb"), false, "❌ Bitte nur 0 und 1 eingeben (Leerzeichen erlaubt).");
-          // jump to next after short delay
           setTimeout(renderQuestion, 450);
           return;
         }
 
         const val = parseInt(clean, 2);
         if (val === current.dec){
-          correct++;
-          $("correct").textContent = String(correct);
+          correct++; $("correct").textContent = String(correct);
           addStreakSuccess();
           showMsg($("fb"), true, `✅ Richtig! ${group4(toBin(current.dec, 8))} = ${current.dec}`);
           renderQuestion();
         } else {
-          wrong++;
-          resetStreak();
+          wrong++; resetStreak();
           ans.classList.add("wrongInput");
           showMsg($("fb"), false, `❌ Falsch. ${group4(toBin(current.dec, 8))} = ${current.dec}`);
           setTimeout(renderQuestion, 450);
         }
       } else {
         if (!/^\d+$/.test(input)){
-          wrong++;
-          resetStreak();
+          wrong++; resetStreak();
           ans.classList.add("wrongInput");
           showMsg($("fb"), false, "❌ Bitte eine Dezimalzahl eingeben (nur Ziffern).");
           setTimeout(renderQuestion, 450);
@@ -558,14 +584,12 @@
 
         const val = Number(input);
         if (val === current.dec){
-          correct++;
-          $("correct").textContent = String(correct);
+          correct++; $("correct").textContent = String(correct);
           addStreakSuccess();
           showMsg($("fb"), true, `✅ Richtig! ${group4(current.bin8Display)} = ${current.dec}`);
           renderQuestion();
         } else {
-          wrong++;
-          resetStreak();
+          wrong++; resetStreak();
           ans.classList.add("wrongInput");
           showMsg($("fb"), false, `❌ Falsch. ${group4(current.bin8Display)} = ${current.dec}`);
           setTimeout(renderQuestion, 450);
@@ -573,7 +597,6 @@
       }
     }
 
-    // ---- Login ----
     async function codeLogin(){
       const code = $("code").value.trim().toUpperCase();
       if (!code) { showMsg($("loginMsg"), false, "Bitte Code eingeben."); return; }
@@ -625,7 +648,6 @@
       showMsg($("loginMsg"), true, "Abgemeldet.");
     }
 
-    // events
     $("loginBtn").addEventListener("click", codeLogin);
     $("code").addEventListener("keydown", (e)=>{ if (e.key==="Enter") codeLogin(); });
     $("logoutBtn").addEventListener("click", logout);
@@ -640,7 +662,6 @@
 
     $("refreshHsBtn").addEventListener("click", loadHighscores);
 
-    // initial help
     updateHelpTable(8);
   </script>
 </body>
