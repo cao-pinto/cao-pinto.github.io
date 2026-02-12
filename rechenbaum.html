@@ -14,8 +14,7 @@
     h1 { margin:0; font-size:1.8rem; }
     h2,h3 { margin:0 0 10px; }
     .muted { opacity:.8; }
-    input, select { padding:10px 12px; border-radius:12px; border:1px solid #ccd2e1; font-size:1rem; }
-    input { min-width:240px; }
+    input { padding:10px 12px; border-radius:12px; border:1px solid #ccd2e1; font-size:1rem; min-width:240px; }
     button { padding:10px 14px; border-radius:12px; border:0; background:#1f6feb; color:#fff; font-weight:900; cursor:pointer; }
     button.ghost { background:#e5e7eb; color:#111; }
     button.modeBtn { background:#e5e7eb; color:#111; }
@@ -26,7 +25,6 @@
     .ok { background:#ecfdf5; border:1px solid #10b98144; padding:10px; border-radius:12px; }
     .bad { background:#fef2f2; border:1px solid #ef444444; padding:10px; border-radius:12px; }
     .feedback { margin-top:12px; display:none; }
-
     .startBar { display:flex; justify-content:center; margin-top:14px; }
     .startBtn { padding:14px 22px; font-size:1.1rem; border-radius:16px; }
 
@@ -37,46 +35,53 @@
     th, td { text-align:left; padding:8px; border-bottom:1px solid #e5e7eb; }
     th { font-size:.9rem; opacity:.9; }
 
-    /* --- Tree drawing --- */
-    .treeWrap {
+    /* --- Tree --- */
+    .treeWrap{
       position: relative;
       background:#0b2230;
       border-radius:18px;
       border:1px solid #0b2230;
       overflow:hidden;
       padding:16px;
-      min-height: 420px;
+      min-height: 460px;
     }
 
-    .node, .leaf, .op {
+    /* SVG lines behind everything */
+    .treeSvg{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
+      z-index: 1;
+    }
+
+    .leaf, .node, .op{
       position:absolute;
       transform: translate(-50%, -50%);
       border: 3px solid #f5c400;
       color: #f5c400;
       font-weight:1000;
       box-sizing:border-box;
+      z-index: 3; /* above lines */
     }
 
-    .leaf {
+    .leaf{
       width:70px; height:42px;
       border-radius:6px;
       display:flex; align-items:center; justify-content:center;
-      background: transparent;
+      background:#0b2230; /* masks lines behind */
       font-size:1.15rem;
     }
 
-    .node {
+    .node{
       width:92px; height:44px;
       border-radius:6px;
-      background: transparent;
+      background:#0b2230; /* masks lines */
       display:flex; align-items:center; justify-content:center;
       padding:0;
     }
     .node input{
-      width:100%;
-      height:100%;
-      border:0;
-      outline:none;
+      width:100%; height:100%;
+      border:0; outline:none;
       text-align:center;
       font-weight:1000;
       font-size:1.05rem;
@@ -84,22 +89,17 @@
       background: transparent;
       padding:0;
     }
-    .node.good { background: rgba(16,185,129,.12); }
-    .node.bad { background: rgba(239,68,68,.10); }
+    .node.good{ background: rgba(16,185,129,.16); }
+    .node.bad{ background: rgba(239,68,68,.16); }
 
-    .op {
-      width:42px; height:42px;
+    .op{
+      width:44px; height:44px;
       border-radius:999px;
       display:flex; align-items:center; justify-content:center;
-      background: transparent;
-      font-size:1.2rem;
+      background:#0b2230; /* important: keeps symbol readable */
+      font-size:1.25rem;
       line-height:1;
-    }
-
-    .treeSvg {
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      pointer-events:none;
+      z-index: 4; /* top */
     }
 
     .hintLine { margin-top:10px; }
@@ -111,7 +111,10 @@
       <div class="top">
         <div>
           <h1>Rechenbaum 🌳 (5 Minuten)</h1>
-          <div class="muted">Löse in 5 Minuten so viele Rechenbäume wie möglich. Keine negativen Zahlen, keine Dezimalzahlen.</div>
+          <div class="muted">
+            Löse in 5 Minuten so viele Rechenbäume wie möglich.
+            Nur natürliche Zahlen – keine negativen Ergebnisse, keine Dezimalzahlen.
+          </div>
         </div>
         <a class="ghost" href="./index.html">← Startseite</a>
       </div>
@@ -134,7 +137,6 @@
           <div class="muted">Angemeldet als:</div>
           <div style="font-weight:1000; font-size:1.2rem;" id="studentName">—</div>
         </div>
-
         <div class="row">
           <button class="ghost" id="refreshHsBtn">↻ Highscore</button>
         </div>
@@ -159,22 +161,13 @@
         <div class="treeWrap" id="treeWrap">
           <svg class="treeSvg" id="treeSvg"></svg>
 
-          <!-- Leaves (Top row) -->
-          <div class="leaf" id="L1"></div>
-          <div class="leaf" id="L2"></div>
-          <div class="leaf" id="L3"></div>
-          <div class="leaf" id="L4"></div>
-          <div class="leaf" id="L5"></div>
-          <div class="leaf" id="L6"></div>
-          <div class="leaf" id="L7"></div>
+          <!-- Leaves -->
+          <div class="leaf" id="L1"></div><div class="leaf" id="L2"></div><div class="leaf" id="L3"></div>
+          <div class="leaf" id="L4"></div><div class="leaf" id="L5"></div><div class="leaf" id="L6"></div><div class="leaf" id="L7"></div>
 
           <!-- Operators -->
-          <div class="op" id="O1"></div>
-          <div class="op" id="O2"></div>
-          <div class="op" id="O3"></div>
-          <div class="op" id="O4"></div>
-          <div class="op" id="O5"></div>
-          <div class="op" id="O6"></div>
+          <div class="op" id="O1"></div><div class="op" id="O2"></div><div class="op" id="O3"></div>
+          <div class="op" id="O4"></div><div class="op" id="O5"></div><div class="op" id="O6"></div>
 
           <!-- Result nodes (inputs) -->
           <div class="node" id="N1"><input inputmode="numeric" autocomplete="off" /></div>
@@ -218,7 +211,6 @@
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = (id) => document.getElementById(id);
-
     const DURATION = 300;
 
     let studentId = null;
@@ -228,22 +220,122 @@
     let t = DURATION;
     let solved = 0;
 
-    // Layout positions (percentage)
-    const pos = {
-      L1:[10,12], L2:[26,12], L3:[38,12], L4:[52,12], L5:[66,12], L6:[76,12], L7:[90,12],
-      O1:[32,27], N1:[32,38],
-      O2:[71,27], N2:[71,38],
-      O3:[58,42], N3:[58,53],
-      O4:[77,60], N4:[77,71],
-      O5:[18,58], N5:[18,69],
-      O6:[50,78], N6:[50,89],
-    };
+    // ---------- Templates (shape changes) ----------
+    // Each template defines:
+    // - positions for L1..L7, O1..O6, N1..N6 (percent)
+    // - connections (lines) as pairs ["from","to"]
+    // - computation plan: how R1..R6 are built from leaves/nodes
+    const templates = [
+      // Template A (ähnlich wie vorher, aber stabiler)
+      {
+        pos: {
+          L1:[10,12], L2:[26,12], L3:[38,12], L4:[52,12], L5:[66,12], L6:[76,12], L7:[90,12],
+          O1:[32,27], N1:[32,38],
+          O2:[71,27], N2:[71,38],
+          O3:[58,42], N3:[58,53],
+          O4:[77,60], N4:[77,71],
+          O5:[18,58], N5:[18,69],
+          O6:[50,78], N6:[50,89],
+        },
+        lines: [
+          ["L2","O1"],["L3","O1"],["O1","N1"],
+          ["L5","O2"],["L6","O2"],["O2","N2"],
+          ["L4","O3"],["N2","O3"],["O3","N3"],
+          ["N3","O4"],["L7","O4"],["O4","N4"],
+          ["L1","O5"],["N1","O5"],["O5","N5"],
+          ["N5","O6"],["N4","O6"],["O6","N6"],
+        ],
+        // R1 = L2 o1 L3
+        // R2 = L5 o2 L6
+        // R3 = L4 o3 R2
+        // R4 = R3 o4 L7
+        // R5 = L1 o5 R1
+        // R6 = R5 o6 R4
+        plan: (L, ops, compute) => {
+          const r1 = compute(L[1], L[2], ops[0]); if (r1==null) return null;
+          const r2 = compute(L[4], L[5], ops[1]); if (r2==null) return null;
+          const r3 = compute(L[3], r2,   ops[2]); if (r3==null) return null;
+          const r4 = compute(r3,   L[6], ops[3]); if (r4==null) return null;
+          const r5 = compute(L[0], r1,   ops[4]); if (r5==null) return null;
+          const r6 = compute(r5,   r4,   ops[5]); if (r6==null) return null;
+          return [r1,r2,r3,r4,r5,r6];
+        }
+      },
 
-    function place(el, key){
-      const [x,y] = pos[key];
-      el.style.left = x + "%";
-      el.style.top  = y + "%";
-    }
+      // Template B (links wird früher kombiniert, andere Form)
+      {
+        pos: {
+          L1:[10,12], L2:[23,12], L3:[36,12], L4:[49,12], L5:[62,12], L6:[75,12], L7:[90,12],
+          O1:[16,27], N1:[16,38],
+          O2:[42,27], N2:[42,38],
+          O3:[28,44], N3:[28,56],
+          O4:[68,27], N4:[68,38],
+          O5:[80,44], N5:[80,56],
+          O6:[54,72], N6:[54,86],
+        },
+        lines: [
+          ["L1","O1"],["L2","O1"],["O1","N1"],
+          ["L3","O2"],["L4","O2"],["O2","N2"],
+          ["N1","O3"],["N2","O3"],["O3","N3"],
+          ["L5","O4"],["L6","O4"],["O4","N4"],
+          ["N4","O5"],["L7","O5"],["O5","N5"],
+          ["N3","O6"],["N5","O6"],["O6","N6"],
+        ],
+        // R1 = L1 o1 L2
+        // R2 = L3 o2 L4
+        // R3 = R1 o3 R2
+        // R4 = L5 o4 L6
+        // R5 = R4 o5 L7
+        // R6 = R3 o6 R5
+        plan: (L, ops, compute) => {
+          const r1 = compute(L[0], L[1], ops[0]); if (r1==null) return null;
+          const r2 = compute(L[2], L[3], ops[1]); if (r2==null) return null;
+          const r3 = compute(r1,   r2,   ops[2]); if (r3==null) return null;
+          const r4 = compute(L[4], L[5], ops[3]); if (r4==null) return null;
+          const r5 = compute(r4,   L[6], ops[4]); if (r5==null) return null;
+          const r6 = compute(r3,   r5,   ops[5]); if (r6==null) return null;
+          return [r1,r2,r3,r4,r5,r6];
+        }
+      },
+
+      // Template C (rechts wächst tiefer, andere Form)
+      {
+        pos: {
+          L1:[10,12], L2:[26,12], L3:[42,12], L4:[58,12], L5:[74,12], L6:[86,12], L7:[94,22],
+          O1:[34,27], N1:[34,38],
+          O2:[50,42], N2:[50,54],
+          O3:[80,27], N3:[80,38],
+          O4:[72,50], N4:[72,62],
+          O5:[22,58], N5:[22,70],
+          O6:[48,78], N6:[48,89],
+        },
+        lines: [
+          ["L2","O1"],["L3","O1"],["O1","N1"],
+          ["N1","O2"],["L4","O2"],["O2","N2"],
+          ["L5","O3"],["L6","O3"],["O3","N3"],
+          ["N3","O4"],["L7","O4"],["O4","N4"],
+          ["L1","O5"],["N2","O5"],["O5","N5"],
+          ["N5","O6"],["N4","O6"],["O6","N6"],
+        ],
+        // R1 = L2 o1 L3
+        // R2 = R1 o2 L4
+        // R3 = L5 o3 L6
+        // R4 = R3 o4 L7
+        // R5 = L1 o5 R2
+        // R6 = R5 o6 R4
+        plan: (L, ops, compute) => {
+          const r1 = compute(L[1], L[2], ops[0]); if (r1==null) return null;
+          const r2 = compute(r1,   L[3], ops[1]); if (r2==null) return null;
+          const r3 = compute(L[4], L[5], ops[2]); if (r3==null) return null;
+          const r4 = compute(r3,   L[6], ops[3]); if (r4==null) return null;
+          const r5 = compute(L[0], r2,   ops[4]); if (r5==null) return null;
+          const r6 = compute(r5,   r4,   ops[5]); if (r6==null) return null;
+          return [r1,r2,r3,r4,r5,r6];
+        }
+      }
+    ];
+
+    let tpl = templates[0];
 
     function setVariant(v){
       variant = v;
@@ -258,61 +350,14 @@
     }
 
     function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-    function pickOp(){ return ["+","-","×","÷"][randInt(0,3)]; }
 
-    function applyOp(a,b,op){
-      if (op === "+") return a + b;
-      if (op === "×") return a * b;
-      if (op === "-") return a - b;
-      if (op === "÷") return a / b;
-      return null;
-    }
-
-    // Generate a valid tree (all naturals, divisions integer, no negatives)
-    function generateTree(){
-      const maxLeaf = (variant === "tree10") ? 10 : 100;
-
-      for (let attempt=0; attempt<2000; attempt++){
-        const L = Array.from({length:7}, () => randInt(0, maxLeaf));
-
-        // Avoid 0 too often as divisor: we'll handle constraints below anyway.
-        const ops = Array.from({length:6}, () => pickOp());
-
-        const [a1,a2,a3,a4,a5,a6,a7] = L;
-        const [o1,o2,o3,o4,o5,o6] = ops;
-
-        // r1 = a2 o1 a3
-        const r1 = computeValid(a2,a3,o1);
-        if (r1 == null) continue;
-
-        // r2 = a5 o2 a6
-        const r2 = computeValid(a5,a6,o2);
-        if (r2 == null) continue;
-
-        // r3 = a4 o3 r2
-        const r3 = computeValid(a4,r2,o3);
-        if (r3 == null) continue;
-
-        // r4 = r3 o4 a7
-        const r4 = computeValid(r3,a7,o4);
-        if (r4 == null) continue;
-
-        // r5 = a1 o5 r1
-        const r5 = computeValid(a1,r1,o5);
-        if (r5 == null) continue;
-
-        // r6 = r5 o6 r4
-        const r6 = computeValid(r5,r4,o6);
-        if (r6 == null) continue;
-
-        // cap huge values a bit (so it's playable)
-        if ([r1,r2,r3,r4,r5,r6].some(x => x > 9999)) continue;
-
-        return { L, ops, R:[r1,r2,r3,r4,r5,r6] };
-      }
-
-      // fallback (should be very rare)
-      return { L:[2,8,4,6,9,3,5], ops:["÷","+","×","-","+","÷"], R:[2,12,72,67,4,0] };
+    function pickOp(){
+      // Für Kopfrechnen: + und - häufiger, ×/÷ seltener
+      const r = Math.random();
+      if (r < 0.40) return "+";
+      if (r < 0.75) return "-";
+      if (r < 0.90) return "×";
+      return "÷";
     }
 
     function computeValid(a,b,op){
@@ -330,10 +375,125 @@
         if (a % b !== 0) return null;
         return a / b;
       }
-
       return null;
     }
 
+    // Caps for mental arithmetic
+    function capsOk(values){
+      if (variant === "tree10"){
+        // “Kopfrechen”-freundlich:
+        // Zwischenwerte max 100, Endwert max 200
+        const maxMid = 100;
+        const maxEnd = 200;
+        for (let i=0;i<values.length;i++){
+          const v = values[i];
+          if (v == null || v < 0) return false;
+          if (i < values.length-1 && v > maxMid) return false;
+          if (i === values.length-1 && v > maxEnd) return false;
+        }
+        return true;
+      } else {
+        // 0–100: größere Ergebnisse erlaubt, aber nicht völlig absurd
+        return values.every(v => v != null && v >= 0 && v <= 99999);
+      }
+    }
+
+    // Generate valid tree using random template
+    function generateTree(){
+      const maxLeaf = (variant === "tree10") ? 10 : 100;
+
+      for (let attempt=0; attempt<4000; attempt++){
+        tpl = templates[randInt(0, templates.length-1)];
+
+        // Leaves
+        const L = Array.from({length:7}, () => randInt(0, maxLeaf));
+
+        // Operators
+        const ops = Array.from({length:6}, () => pickOp());
+
+        // Compute results per template plan
+        const R = tpl.plan(L, ops, computeValid);
+        if (!R) continue;
+
+        // Ensure natural numbers (already), caps
+        if (!capsOk(R)) continue;
+
+        // Also avoid too-trivial constant zeros everywhere (optional)
+        const nonZeroCount = R.filter(x => x !== 0).length;
+        if (variant === "tree10" && nonZeroCount < 2) continue;
+
+        return { L, ops, R };
+      }
+
+      // fallback (should be rare)
+      return { L:[2,8,4,6,9,3,5], ops:["÷","+","×","-","+","÷"], R:[2,12,72,67,4,0] };
+    }
+
+    // ---------- Rendering / positioning ----------
+    function place(el, key){
+      const [x,y] = tpl.pos[key];
+      el.style.left = x + "%";
+      el.style.top  = y + "%";
+    }
+
+    // shorten line endpoints so they do NOT enter circles/boxes
+    function shrinkSegment(p1, p2, pad1, pad2){
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx,dy);
+      if (len < 0.001) return { a:p1, b:p2 };
+      const ux = dx / len;
+      const uy = dy / len;
+      return {
+        a: { x: p1.x + ux * pad1, y: p1.y + uy * pad1 },
+        b: { x: p2.x - ux * pad2, y: p2.y - uy * pad2 }
+      };
+    }
+
+    function padFor(id){
+      // We want lines to stop at circle edge for operators.
+      if (id.startsWith("O")) return 24; // ~ radius (22) + a bit
+      // for boxes, a small pad keeps lines from touching text too much
+      return 10;
+    }
+
+    function drawLines(){
+      const svg = $("treeSvg");
+      svg.innerHTML = "";
+
+      const wrap = $("treeWrap");
+      const rect = wrap.getBoundingClientRect();
+
+      function centerOf(id){
+        const el = $(id);
+        const r = el.getBoundingClientRect();
+        return {
+          x: (r.left + r.width/2) - rect.left,
+          y: (r.top + r.height/2) - rect.top
+        };
+      }
+
+      function line(from, to){
+        const p1 = centerOf(from);
+        const p2 = centerOf(to);
+
+        const seg = shrinkSegment(p1, p2, padFor(from), padFor(to));
+
+        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        l.setAttribute("x1", seg.a.x);
+        l.setAttribute("y1", seg.a.y);
+        l.setAttribute("x2", seg.b.x);
+        l.setAttribute("y2", seg.b.y);
+        l.setAttribute("stroke", "#f5c400");
+        l.setAttribute("stroke-width", "3");
+        l.setAttribute("stroke-linecap", "round");
+        svg.appendChild(l);
+      }
+
+      for (const [a,b] of tpl.lines) line(a,b);
+    }
+
+    // ---------- Game state ----------
     let current = null; // {L, ops, R}
     let nodeCorrect = [false,false,false,false,false,false];
 
@@ -348,19 +508,15 @@
     }
 
     function renderTree(){
-      // position elements
-      ["L1","L2","L3","L4","L5","L6","L7","O1","O2","O3","O4","O5","O6","N1","N2","N3","N4","N5","N6"].forEach(id=>{
-        place($(id), id);
-      });
+      // position everything according to template
+      const ids = ["L1","L2","L3","L4","L5","L6","L7","O1","O2","O3","O4","O5","O6","N1","N2","N3","N4","N5","N6"];
+      ids.forEach(id => place($(id), id));
 
-      // fill leaves and ops
-      const [a1,a2,a3,a4,a5,a6,a7] = current.L;
-      $("L1").textContent=a1; $("L2").textContent=a2; $("L3").textContent=a3; $("L4").textContent=a4;
-      $("L5").textContent=a5; $("L6").textContent=a6; $("L7").textContent=a7;
+      // fill leaves
+      current.L.forEach((v, idx) => $("L"+(idx+1)).textContent = v);
 
-      const [o1,o2,o3,o4,o5,o6] = current.ops;
-      $("O1").textContent=o1; $("O2").textContent=o2; $("O3").textContent=o3;
-      $("O4").textContent=o4; $("O5").textContent=o5; $("O6").textContent=o6;
+      // fill ops
+      current.ops.forEach((op, idx) => $("O"+(idx+1)).textContent = op);
 
       clearInputs();
       drawLines();
@@ -373,11 +529,8 @@
         const box = $("N"+i);
         const inp = box.querySelector("input");
         inp.oninput = () => validateNode(i);
-        inp.onkeydown = (e) => {
-          if (e.key === "Enter") e.preventDefault();
-        };
+        inp.onkeydown = (e) => { if (e.key === "Enter") e.preventDefault(); };
       }
-      // focus first input for speed
       $("N1").querySelector("input").focus();
     }
 
@@ -405,7 +558,6 @@
         box.classList.add("bad");
       }
 
-      // if all correct -> next tree
       if (nodeCorrect.every(Boolean)) {
         solved++;
         $("trees").textContent = String(solved);
@@ -413,58 +565,8 @@
         setTimeout(() => {
           current = generateTree();
           renderTree();
-        }, 450);
+        }, 380);
       }
-    }
-
-    function drawLines(){
-      const svg = $("treeSvg");
-      svg.innerHTML = "";
-
-      const wrap = $("treeWrap");
-      const rect = wrap.getBoundingClientRect();
-
-      function centerOf(id){
-        const el = $(id);
-        const r = el.getBoundingClientRect();
-        return {
-          x: (r.left + r.width/2) - rect.left,
-          y: (r.top + r.height/2) - rect.top
-        };
-      }
-
-      function line(a,b){
-        const p1 = centerOf(a);
-        const p2 = centerOf(b);
-        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        l.setAttribute("x1", p1.x);
-        l.setAttribute("y1", p1.y);
-        l.setAttribute("x2", p2.x);
-        l.setAttribute("y2", p2.y);
-        l.setAttribute("stroke", "#f5c400");
-        l.setAttribute("stroke-width", "3");
-        l.setAttribute("stroke-linecap", "round");
-        svg.appendChild(l);
-      }
-
-      // matches the sample structure:
-      // L2 + L3 -> O1 -> N1
-      line("L2","O1"); line("L3","O1"); line("O1","N1");
-
-      // L5 + L6 -> O2 -> N2
-      line("L5","O2"); line("L6","O2"); line("O2","N2");
-
-      // L4 + N2 -> O3 -> N3
-      line("L4","O3"); line("N2","O3"); line("O3","N3");
-
-      // N3 + L7 -> O4 -> N4
-      line("N3","O4"); line("L7","O4"); line("O4","N4");
-
-      // L1 + N1 -> O5 -> N5
-      line("L1","O5"); line("N1","O5"); line("O5","N5");
-
-      // N5 + N4 -> O6 -> N6
-      line("N5","O6"); line("N4","O6"); line("O6","N6");
     }
 
     function tick(){
@@ -496,15 +598,17 @@
       $("runArea").style.display = "none";
       $("startBar").style.display = "flex";
 
-      // save as attempt: correct_count = solved trees
+      // DB requires NOT NULL accuracy -> set a number
+      const accuracy = solved > 0 ? 1 : 0;
+
       const { error } = await supabase.from("attempts").insert({
         game: "tree",
         student_id: studentId,
-        mode: variant,                 // tree10 / tree100
-        correct_count: solved,         // highscores use this
+        mode: variant,            // tree10 / tree100
+        correct_count: solved,    // highscore uses this
         wrong_count: 0,
         total_count: solved,
-        accuracy: null,
+        accuracy: accuracy,
         duration_seconds: DURATION
       });
 
@@ -542,7 +646,6 @@
     async function loadHighscores(){
       $("hs10").textContent = "Lade…";
       $("hs100").textContent = "Lade…";
-
       try{
         const res = await fetch(FN_GET_HIGHSCORES_TREE, {
           method: "POST",
@@ -562,12 +665,13 @@
 
         renderHS("hs10", json.v10);
         renderHS("hs100", json.v100);
-      } catch (e){
+      } catch {
         $("hs10").innerHTML = `<div class="bad">Netzwerkfehler</div>`;
         $("hs100").innerHTML = `<div class="bad">Netzwerkfehler</div>`;
       }
     }
 
+    // ---------- Auth ----------
     async function codeLogin(){
       const code = $("code").value.trim().toUpperCase();
       if (!code) { showMsg($("loginMsg"), false, "Bitte Code eingeben."); return; }
@@ -628,13 +732,9 @@
 
     $("refreshHsBtn").addEventListener("click", loadHighscores);
 
-    // initial placement (so it renders nicely even before start)
-    ["L1","L2","L3","L4","L5","L6","L7","O1","O2","O3","O4","O5","O6","N1","N2","N3","N4","N5","N6"].forEach(id=>{
-      place($(id), id);
+    window.addEventListener("resize", ()=> {
+      if ($("runArea").style.display !== "none") drawLines();
     });
-
-    // redraw lines on resize
-    window.addEventListener("resize", ()=>{ if($("runArea").style.display !== "none") drawLines(); });
 
     setVariant("tree10");
   </script>
